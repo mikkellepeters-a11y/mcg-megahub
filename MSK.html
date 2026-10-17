@@ -76,8 +76,20 @@
           label.textContent='Week 14';
           card.querySelector('.card-top')?.appendChild(label);
         }
-        if(!card.querySelector('.active-desc')){
-          card.querySelector('h3')?.insertAdjacentHTML('afterend','<p class="active-desc">Explore Week 14 lectures and study resources.</p><div class="active-footer"><div class="active-tags"><span class="active-tag">Available</span></div><div class="active-arrow">→</div></div>');
+        // Match the established active-week layout, rather than using a preview-style footer.
+        const activeReference=document.querySelector('[data-name="MSK-Skin Week 13"]');
+        const heading=card.querySelector('h3');
+        if(heading){
+          card.querySelector('.active-desc')?.remove();
+          card.querySelector('.active-footer')?.remove();
+          const desc=(activeReference?.querySelector('.active-desc')?.cloneNode(true))||document.createElement('p');
+          desc.className='active-desc';
+          desc.textContent='Anterior arm, cubital fossa, dermatology & musculoskeletal imaging.';
+          heading.insertAdjacentElement('afterend',desc);
+          const footer=(activeReference?.querySelector('.active-footer')?.cloneNode(true))||document.createElement('div');
+          footer.className='active-footer';
+          footer.innerHTML='<div class="active-tags"><span class="active-tag">Lecture Companions</span><span class="active-tag">Factoids</span></div><div class="active-arrow">→</div>';
+          desc.insertAdjacentElement('afterend',footer);
         }
       }else{
         card.classList.remove('active-card');
