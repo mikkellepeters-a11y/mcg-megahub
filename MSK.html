@@ -96,7 +96,10 @@
           heading.insertAdjacentElement('afterend',desc);
           const footer=(activeReference?.querySelector('.active-footer')?.cloneNode(true))||document.createElement('div');
           footer.className='active-footer';
-          footer.innerHTML='<div class="active-tags"><span class="active-tag">Lecture Companions</span><span class="active-tag">Factoids</span></div><div class="active-arrow">→</div>';
+          // Preserve the active week's exact badges, classes, spacing, and arrow.
+          if(!activeReference?.querySelector('.active-footer')){
+            footer.innerHTML='<div class="active-tags"></div><div class="active-arrow">→</div>';
+          }
           desc.insertAdjacentElement('afterend',footer);
         }
       }else{
