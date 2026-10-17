@@ -68,7 +68,7 @@
         card.classList.remove('locked-card','placeholder');
         card.classList.add('active-card');
         card.setAttribute('href',week14Href);
-        card.setAttribute('aria-label','Week 14 admin preview');
+        card.setAttribute('aria-label','Open Week 14');
         if(badge)badge.style.display='none';
         if(!card.querySelector('.week-label')){
           const label=document.createElement('span');
@@ -77,7 +77,7 @@
           card.querySelector('.card-top')?.appendChild(label);
         }
         if(!card.querySelector('.active-desc')){
-          card.querySelector('h3')?.insertAdjacentHTML('afterend','<p class="active-desc">Admin preview · Build Week 14 before publication.</p><div class="active-footer"><div class="active-tags"><span class="active-tag">Admin preview</span><span class="active-tag">Draft</span></div><div class="active-arrow">→</div></div>');
+          card.querySelector('h3')?.insertAdjacentHTML('afterend','<p class="active-desc">Explore Week 14 lectures and study resources.</p><div class="active-footer"><div class="active-tags"><span class="active-tag">Available</span></div><div class="active-arrow">→</div></div>');
         }
       }else{
         card.classList.remove('active-card');
@@ -90,7 +90,7 @@
         card.querySelector('.active-footer')?.remove();
       }
     };
-    const verifyWeek14=async()=>{
+    const verifyWeek14=async()=>{setWeek14Access(true);return;
       const serial=++week14CheckSerial;
       if(!window.supabase){setWeek14Access(false);return;}
       try{
