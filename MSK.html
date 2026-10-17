@@ -241,6 +241,8 @@
           h.insertAdjacentHTML('afterend','<p class="active-desc">Case-based learning for MSK-Skin with integrated clinical reasoning, quick guides, and case quizzes as they are added.</p><div class="active-footer"><div class="active-tags"><span class="active-tag">Cases</span><span class="active-tag">Quick Guides</span><span class="active-tag">Quizzes</span></div><div class="active-arrow">→</div></div>');
         }
       }
+      const w13=document.querySelector('[data-name="MSK-Skin Week 13"] .active-desc');
+      if(w13)w13.textContent='Skin, spine & neural foundations.';
       wireReviewModule();
       ensureModuleHubBack();
       ensureLeaderboardButton();
