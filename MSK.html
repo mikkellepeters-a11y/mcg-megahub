@@ -16,6 +16,10 @@
     #mskLeaderboardButton{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:9px 13px;border-radius:11px;background:#28543d;color:#fff!important;text-decoration:none;font-size:11px;font-weight:850;box-shadow:0 6px 14px rgba(24,59,42,.14)}
     #mskLeaderboardButton:hover{background:#183b2a}
     #mskLeaderboardButton .leader-dot{width:9px;height:9px;border-radius:50%;background:#fff;display:inline-block;flex:0 0 auto}
+    /* Week 14: match active cards and pin week number to top-right */
+    [data-name="MSK-Skin Week 14"].active-card .card-top{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;width:100%!important}
+    [data-name="MSK-Skin Week 14"].active-card .card-top .week-label{margin-left:auto!important;order:99!important;position:relative!important;top:auto!important;right:auto!important;flex-shrink:0!important}
+    [data-name="MSK-Skin Week 14"].active-card .locked-badge{display:none!important}
     #mskFeedbackPanel{margin-top:28px;background:linear-gradient(180deg,#fbfdfb,#f6faf7);border:1px solid #ceddd3;border-radius:22px;box-shadow:0 14px 34px rgba(24,59,42,.08);padding:20px}
     #mskFeedbackPanel .feedback-grid{display:grid;grid-template-columns:1fr;gap:14px}
     #mskFeedbackPanel .feedback-card{border:1px solid #ceddd3;background:#fbfdfb;border-radius:16px;padding:18px}
@@ -53,7 +57,7 @@
       'Review the Module':'review/msk-review-center.html'
     };
 
-    // Week 14 is a single-account admin preview. Keep all other weeks unchanged.
+    // Week 14 is publicly available. Keep all other weeks unchanged.
     const week14Name='MSK-Skin Week 14';
     const week14Href='weeks/week14/index.html';
     let week14Granted=false;
@@ -74,8 +78,12 @@
           const label=document.createElement('span');
           label.className='week-label';
           label.textContent='Week 14';
-          card.querySelector('.card-top')?.appendChild(label);
+          const top=card.querySelector('.card-top');
+          if(top)top.appendChild(label);
         }
+        // Strip remnants of the formerly locked preview card.
+        card.querySelectorAll('.card-top .week-label').forEach((el,i)=>{if(i>0)el.remove()});
+        card.querySelectorAll('.active-tag').forEach(el=>{if(/admin preview|draft/i.test(el.textContent||''))el.remove()});
         // Match the established active-week layout, rather than using a preview-style footer.
         const activeReference=document.querySelector('[data-name="MSK-Skin Week 13"]');
         const heading=card.querySelector('h3');
