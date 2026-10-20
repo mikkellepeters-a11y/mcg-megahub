@@ -23,43 +23,52 @@ card.querySelector('.stem').addEventListener('mouseup',e=>highlightSelection(q,e
 function renderPreserving(id){const top=document.getElementById(id)?.getBoundingClientRect().top||0;const y=window.scrollY;render();const newTop=document.getElementById(id)?.getBoundingClientRect().top;if(newTop!==undefined)window.scrollTo({top:y+newTop-top,behavior:'instant'});}
 function finish(){if(complete)return;complete=true;const submitted=attempt.filter(q=>state[q.id].submitted),correct=submitted.filter(q=>state[q.id].choice===q.answer).length;const pct=submitted.length?Math.round(correct/submitted.length*100):0;const allPct=attempt.length?Math.round(correct/attempt.length*100):0;$('result').innerHTML=`<div class="eyebrow" style="color:var(--leaf)">Attempt results</div><h2 style="margin:.3em 0">${correct} / ${submitted.length} correct on submitted questions</h2><p><b>${pct}%</b> accuracy on submitted answers · ${submitted.length}/${attempt.length} questions attempted · ${allPct}% of selected question bank answered correctly.</p><p class="small">Unsubmitted questions are not counted as correct. All explanations are now visible; unanswered questions show the keyed answer for review.</p><button class="btn secondary" id="topresults">Return to questions</button>`;$('result').classList.remove('hide');render();$('topresults').onclick=()=>document.querySelector('.question')?.scrollIntoView({behavior:'smooth'});$('result').scrollIntoView({behavior:'smooth'});}
 $('highlightMode').onclick=()=>{annotationMode=annotationMode==='highlight'?'pointer':'highlight';updateMarkButtons()};$('strikeMode').onclick=()=>{annotationMode=annotationMode==='strike'?'pointer':'strike';updateMarkButtons()};$('markOff').onclick=()=>{annotationMode='pointer';updateMarkButtons()};updateMarkButtons();$('finish').onclick=finish;$('flagfilter').onclick=()=>{flagOnly=!flagOnly;$('flagfilter').textContent=flagOnly?'Show all questions':'Show flagged only';render()};function resetCheck(){const modified=attempt.some(q=>state[q.id]?.choice||state[q.id]?.submitted||state[q.id]?.flag);if(modified&&!complete)$('confirm').classList.remove('hide');else start()};$('new').onclick=resetCheck;$('yesReset').onclick=()=>{$('confirm').classList.add('hide');start()};$('noReset').onclick=()=>$('confirm').classList.add('hide');$('level').onchange=resetCheck;$('lecture').onchange=resetCheck;$('mode').onchange=resetCheck;
-/* MSK leaderboard: save only submitted answers, never unsubmitted selections. */
+/* Durable MSK participation and quiz-result sync (Week 14). */
 const MSK_SYNC_QUIZ_ID="msk-w14-wed-thurs";
 const MSK_SYNC_QUIZ_NAME="Week 14 Wednesday Thursday";
 const MSK_SYNC_URL='https://ofqfdnxpftifnvxnvppe.supabase.co';
 const MSK_SYNC_KEY='sb_publishable_06zYj2REZQMC8nXfhm7weQ_Nrotri7G';
-let mskAttemptToken=null,mskPending=new Map(),mskSynced=new Set(),mskSending=false;
-let mskClient=null;
+const mskQueueKey='megahub-msk-pending-v2';
 const mskId=()=>window.crypto?.randomUUID?.()||('msk-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+let mskAttemptToken=null,mskClient=null,mskSending=false,mskNeedsFlush=false;
 const mskStatus=document.createElement('div');
 mskStatus.setAttribute('role','status');mskStatus.setAttribute('aria-live','polite');
-mskStatus.style.cssText='position:fixed;right:14px;bottom:14px;z-index:90;max-width:300px;font:12px/1.45 system-ui,sans-serif;padding:9px 12px;border-radius:10px;background:#eaf4ec;color:#174c3f;border:1px solid #bbd7c6;box-shadow:0 5px 20px #102f2824;display:none';
+mskStatus.style.cssText='position:fixed;right:14px;bottom:14px;z-index:90;max-width:320px;font:12px/1.45 system-ui,sans-serif;padding:9px 12px;border-radius:10px;background:#eaf4ec;color:#174c3f;border:1px solid #bbd7c6;box-shadow:0 5px 20px #102f2824;display:none';
 document.body.appendChild(mskStatus);
 function mskMessage(message,warning=false){mskStatus.textContent=message;mskStatus.style.display='block';mskStatus.style.background=warning?'#fff5e5':'#eaf4ec';mskStatus.style.color=warning?'#774714':'#174c3f';}
+function mskReadQueue(){try{const value=JSON.parse(localStorage.getItem(mskQueueKey)||'[]');return Array.isArray(value)?value:[]}catch(e){console.warn('MSK queue read:',e);return []}}
+function mskWriteQueue(items){try{localStorage.setItem(mskQueueKey,JSON.stringify(items));return true}catch(e){console.warn('MSK queue storage:',e);mskMessage('Browser storage blocked: keep this tab open until synced.',true);return false}}
+function mskEnqueue(table,row){const key=table+'|'+row.module_key+'|'+row.quiz_id+'|'+row.attempt_token+'|'+(row.question_id||'completion');const queue=mskReadQueue();if(!queue.some(item=>item.key===key)){queue.push({key,table,row});mskWriteQueue(queue);}void mskFlush();}
 const mskOriginalStart=start;
-start=function(){mskOriginalStart();mskAttemptToken=mskId();mskPending=new Map();mskSynced=new Set();mskStatus.style.display='none';};
-function mskRow(q,answer){return {user_id:null,module_key:'msk',quiz_id:MSK_SYNC_QUIZ_ID,question_id:q.id,attempt_token:mskAttemptToken,week:'14',lecture:'Lecture '+q.lecture,topic:'Lecture '+q.lecture,difficulty:/challenge|step.?1/i.test(q.difficulty)?'Step 1':/intermediate/i.test(q.difficulty)?'Intermediate':'Easy',selected_answer:answer,correct_answer:q.answer,is_correct:answer===q.answer,metadata:{source:'week14_daily',quiz_name:MSK_SYNC_QUIZ_NAME,category:[1,2,7].includes(Number(q.lecture))?'anatomy':'general'}}}
-async function mskFlush(){if(mskSending||!mskPending.size)return;mskSending=true;try{
-  if(!window.supabase){mskMessage('Leaderboard sync unavailable. Reload when connected.',true);return;}
+start=function(){mskOriginalStart();mskAttemptToken=mskId();mskStatus.style.display='none';void mskFlush();};
+function mskQuestionRow(q,answer){return {module_key:'msk',quiz_id:MSK_SYNC_QUIZ_ID,question_id:q.id,attempt_token:mskAttemptToken,week:'14',lecture:'Lecture '+q.lecture,topic:'Lecture '+q.lecture,difficulty:/challenge|step.?1/i.test(q.difficulty)?'Step 1':/intermediate/i.test(q.difficulty)?'Intermediate':'Easy',selected_answer:answer,correct_answer:q.answer,is_correct:answer===q.answer,metadata:{source:'week14_daily',quiz_name:MSK_SYNC_QUIZ_NAME,category:[1,2,7].includes(Number(q.lecture))?'anatomy':'general'}};}
+function mskQuizRow(){const submitted=attempt.filter(q=>state[q.id]?.submitted);const correct=submitted.filter(q=>state[q.id].choice===q.answer).length;return {module_key:'msk',quiz_id:MSK_SYNC_QUIZ_ID,quiz_name:MSK_SYNC_QUIZ_NAME,attempt_token:mskAttemptToken,score:correct,total_questions:submitted.length,percentage:submitted.length?100*correct/submitted.length:0,mode,metadata:{week:'14',selected_question_count:attempt.length,source:'week14_daily'}};}
+async function mskFlush(){if(mskSending){mskNeedsFlush=true;return;}if(!mskReadQueue().length)return;mskSending=true;let failure=false;try{
+  if(!window.supabase){mskMessage('Leaderboard sync waiting for connection.',true);return;}
   if(!mskClient)mskClient=window.supabase.createClient(MSK_SYNC_URL,MSK_SYNC_KEY);
-  const {data:{user},error:userErr}=await mskClient.auth.getUser();
-  if(userErr||!user){mskMessage('Sign in to MegaHub to earn MSK leaderboard points.',true);return;}
-  for(const [key,row] of [...mskPending]){
-    if(mskSynced.has(key)){mskPending.delete(key);continue;}
-    const {error}=await mskClient.from('question_attempts').insert({...row,user_id:user.id});
-    if(!error||error.code==='23505'){mskSynced.add(key);mskPending.delete(key);}
-    else{console.warn('MSK leaderboard sync:',error.message);mskMessage('Leaderboard sync failed; retry with the next submission.',true);break;}
+  const {data:{user},error:authError}=await mskClient.auth.getUser();
+  if(authError||!user){mskMessage('Sign in to MegaHub to sync MSK participation.',true);return;}
+  for(const entry of mskReadQueue()){
+    const {error}=await mskClient.from(entry.table).insert({...entry.row,user_id:user.id});
+    if(!error||error.code==='23505'){
+      mskWriteQueue(mskReadQueue().filter(q=>q.key!==entry.key));
+    }else{failure=true;console.warn('MSK Supabase sync:',error);mskMessage('MSK sync pending. Reconnect or submit another answer to retry.',true);break;}
   }
-  if(!mskPending.size)mskMessage('MSK leaderboard participation synced.');
-}catch(err){console.warn('MSK leaderboard sync:',err);mskMessage('Leaderboard sync paused; retry with the next submission.',true)}
-finally{mskSending=false;}}
-document.getElementById('questions').addEventListener('click',event=>{
-  const button=event.target.closest('button.submit');if(!button||button.disabled)return;
-  const card=button.closest('.question');const q=BANK.find(x=>x.id===card?.id);
-  if(!q||!state[q.id]||state[q.id].submitted||!state[q.id].choice)return;
-  const row=mskRow(q,state[q.id].choice);
-  const key=row.attempt_token+'|'+row.question_id;
-  if(!mskSynced.has(key)){mskPending.set(key,row);mskFlush();}
+  if(!failure&&!mskReadQueue().length)mskMessage('MSK participation synced to Supabase.');
+}catch(e){failure=true;console.warn('MSK Supabase sync:',e);mskMessage('MSK sync pending; retry when online.',true)}
+finally{mskSending=false;if(mskNeedsFlush){mskNeedsFlush=false;if(!failure)void mskFlush();}}}
+document.getElementById('questions').addEventListener('click',e=>{
+  const button=e.target.closest('button.submit');if(!button||button.disabled)return;
+  const q=BANK.find(x=>x.id===button.closest('.question')?.id);
+  if(!q||!state[q.id]?.choice||state[q.id].submitted||complete)return;
+  mskEnqueue('question_attempts',mskQuestionRow(q,state[q.id].choice));
 },true);
+document.getElementById('finish').addEventListener('click',()=>{
+  if(complete||!attempt.some(q=>state[q.id]?.submitted))return;
+  mskEnqueue('quiz_attempts',mskQuizRow());
+},true);
+window.addEventListener('online',()=>void mskFlush());
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void mskFlush()});
+window.addEventListener('storage',e=>{if(e.key===mskQueueKey)void mskFlush()});
 start();
 </script></body></html>
