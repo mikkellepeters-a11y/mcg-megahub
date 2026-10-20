@@ -37,7 +37,7 @@ document.body.appendChild(mskStatus);
 function mskMessage(message,warning=false){mskStatus.textContent=message;mskStatus.style.display='block';mskStatus.style.background=warning?'#fff5e5':'#eaf4ec';mskStatus.style.color=warning?'#774714':'#174c3f';}
 function mskReadQueue(){try{const value=JSON.parse(localStorage.getItem(mskQueueKey)||'[]');return Array.isArray(value)?value:[]}catch(e){console.warn('MSK queue read:',e);return []}}
 function mskWriteQueue(items){try{localStorage.setItem(mskQueueKey,JSON.stringify(items));return true}catch(e){console.warn('MSK queue storage:',e);mskMessage('Browser storage blocked: keep this tab open until synced.',true);return false}}
-function mskEnqueue(table,row){const key=table+'|'+row.module_key+'|'+row.quiz_id+'|'+row.attempt_token+'|'+(row.question_id||'completion');const queue=mskReadQueue();if(!queue.some(item=>item.key===key)){queue.push({key,table,row});mskWriteQueue(queue);}void mskFlush();}
+async function mskEnqueue(table,row){try{if(!window.supabase){mskMessage('Supabase unavailable; sign in and retry.',true);return}if(!mskClient)mskClient=window.supabase.createClient(MSK_SYNC_URL,MSK_SYNC_KEY);const {data:{user},error}=await mskClient.auth.getUser();if(error||!user){mskMessage('Sign in before submitting to earn MSK participation points.',true);return}const key=user.id+'|'+table+'|'+row.module_key+'|'+row.quiz_id+'|'+row.attempt_token+'|'+(row.question_id||'completion');const queue=mskReadQueue();if(!queue.some(item=>item.key===key)){queue.push({key,table,row,user_id:user.id});mskWriteQueue(queue);}void mskFlush()}catch(e){console.warn('MSK queue:',e);mskMessage('Sync unavailable; try again when signed in.',true)}}
 const mskOriginalStart=start;
 start=function(){mskOriginalStart();mskAttemptToken=mskId();mskStatus.style.display='none';void mskFlush();};
 function mskQuestionRow(q,answer){return {module_key:'msk',quiz_id:MSK_SYNC_QUIZ_ID,question_id:q.id,attempt_token:mskAttemptToken,week:'14',lecture:'Lecture '+q.lecture,topic:'Lecture '+q.lecture,difficulty:/challenge|step.?1/i.test(q.difficulty)?'Step 1':/intermediate/i.test(q.difficulty)?'Intermediate':'Easy',selected_answer:answer,correct_answer:q.answer,is_correct:answer===q.answer,metadata:{source:'week14_daily',quiz_name:MSK_SYNC_QUIZ_NAME,category:[1,2,7].includes(Number(q.lecture))?'anatomy':'general'}};}
@@ -48,12 +48,13 @@ async function mskFlush(){if(mskSending){mskNeedsFlush=true;return;}if(!mskReadQ
   const {data:{user},error:authError}=await mskClient.auth.getUser();
   if(authError||!user){mskMessage('Sign in to MegaHub to sync MSK participation.',true);return;}
   for(const entry of mskReadQueue()){
+    if(entry.user_id!==user.id)continue;
     const {error}=await mskClient.from(entry.table).insert({...entry.row,user_id:user.id});
     if(!error||error.code==='23505'){
       mskWriteQueue(mskReadQueue().filter(q=>q.key!==entry.key));
     }else{failure=true;console.warn('MSK Supabase sync:',error);mskMessage('MSK sync pending. Reconnect or submit another answer to retry.',true);break;}
   }
-  if(!failure&&!mskReadQueue().length)mskMessage('MSK participation synced to Supabase.');
+  if(!failure&&!mskReadQueue().some(entry=>entry.user_id===user.id))mskMessage('MSK participation synced to Supabase.');
 }catch(e){failure=true;console.warn('MSK Supabase sync:',e);mskMessage('MSK sync pending; retry when online.',true)}
 finally{mskSending=false;if(mskNeedsFlush){mskNeedsFlush=false;if(!failure)void mskFlush();}}}
 document.getElementById('questions').addEventListener('click',e=>{
