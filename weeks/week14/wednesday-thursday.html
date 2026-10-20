@@ -18,7 +18,124 @@ const letters=['A','B','C','D'];const esc=s=>String(s).replace(/[&<>"']/g,c=>({'
 function filtered(){return BANK.filter(q=>($('level').value==='all'||q.difficulty===$('level').value)&&($('lecture').value==='all'||String(q.lecture)===$('lecture').value));}
 function start(){mode=$('mode').value;attempt=filtered();state={};highlights={};crossed={};complete=false;flagOnly=false;$('flagfilter').textContent='Show flagged only';attempt.forEach(q=>state[q.id]={choice:null,submitted:false,flag:false});$('result').classList.add('hide');render();window.scrollTo({top:0,behavior:'smooth'});}
 function progress(){const done=attempt.filter(q=>state[q.id].submitted).length,flagged=attempt.filter(q=>state[q.id].flag).length;$('count').textContent=attempt.length;$('done').textContent=done;$('flags').textContent=flagged;$('bar').style.width=(attempt.length?done/attempt.length*100:0)+'%';$('status').textContent=complete?'Complete':done+' / '+attempt.length+' submitted';$('scoretext').textContent=complete?'Full explanations revealed below.':mode==='advanced'?'Advanced Review: feedback revealed when you finish.':'Practice: submit each answer to view feedback.';$('finish').disabled=complete||!attempt.length;}
-function render(){progress();const out=$('questions');out.innerHTML='';if(!attempt.length){out.innerHTML='<div class="panel empty">No questions match this filter. Try another combination.</div>';return;}for(const q of attempt){const s=state[q.id];if(flagOnly&&!s.flag)continue;let reveal=(complete||(s.submitted&&mode==='practice'));let card=document.createElement('section');card.className='question';card.id=q.id;card.innerHTML=`<div class="qhead"><span class="qnum">Question ${q.number}</span><span><span class="meta">Lecture ${q.lecture} · LO ${esc(q.objective)}</span> <span class="tag">${esc(q.difficulty)}</span></span></div><p class="stem" title="Select text while Highlight mode is active">${renderStem(q)}</p><div class="opts">${q.options.map((o,i)=>{let l=letters[i],checked=s.choice===l,css=(checked?' checked':'')+(s.submitted?' locked':'')+(reveal?(l===q.answer?' correct':checked?' incorrect':''):'');return `<div class="optionrow${crossed[q.id]?.includes(l)?' crossed':''}"><label class="option${css}"><input type="radio" name="${q.id}" value="${l}" ${checked?'checked':''} ${s.submitted||complete?'disabled':''}><strong>${l}.</strong><span class="optiontext">${esc(o)}</span></label><button type="button" class="crossout" data-letter="${l}" aria-label="Toggle strikethrough for choice ${l}" aria-pressed="${crossed[q.id]?.includes(l)?'true':'false'}" title="Cross out / restore this choice">S̶</button></div>`}).join('')}</div><div class="actions"><button class="btn submit" ${!s.choice||s.submitted||complete?'disabled':''}>${s.submitted?'Answer submitted':'Submit Answer'}</button><button class="iconbtn flag${s.flag?' flagged':''}">${s.flag?'★ Flagged':'☆ Flag for review'}</button><span class="small">${s.submitted?'Answer locked':'Choose one answer, then submit'}</span></div>${reveal?`<div class="feedback ${s.choice===q.answer?'':'bad'}"><strong>${s.choice===q.answer?'Correct':'Review this concept'}</strong><p>${esc(q.explanation)}</p><p class="small">Correct choice: ${q.answer} · ${esc(q.options[letters.indexOf(q.answer)])}</p></div>`:''}`;
+
+const reviewConcepts=[
+[/long thoracic nerve/i,'supplies serratus anterior; injury produces medial scapular winging and limits upward scapular rotation'],
+[/thoracodorsal nerve/i,'supplies latissimus dorsi, affecting extension, adduction and medial rotation of the arm'],
+[/dorsal scapular nerve/i,'supplies rhomboids and levator scapulae, affecting scapular retraction and elevation'],
+[/suprascapular nerve/i,'supplies supraspinatus and infraspinatus, contributing to initial abduction and lateral rotation'],
+[/axillary nerve/i,'supplies deltoid and teres minor, with sensation over the lateral shoulder'],
+[/radial nerve/i,'primarily supplies extensors of the arm and forearm; injury often impairs wrist or finger extension'],
+[/musculocutaneous nerve/i,'supplies anterior arm flexors and lateral forearm sensation'],
+[/ulnar nerve/i,'supplies many intrinsic hand muscles and sensation of the medial one-and-a-half digits'],
+[/median nerve/i,'innervates multiple forearm flexors and thenar muscles, with characteristic lateral hand sensory distribution'],
+[/anterior interosseous nerve/i,'is a motor median-nerve branch involved in thumb and index-finger flexion, without cutaneous sensory supply'],
+[/pectoral(is)? minor/i,'draws the scapula anteroinferiorly and is innervated by the medial pectoral nerve'],
+[/pectoral(is)? major/i,'adducts and medially rotates the arm and receives medial and lateral pectoral innervation'],
+[/serratus anterior/i,'protracts and upwardly rotates the scapula and holds its medial border against the thoracic wall'],
+[/subclavius/i,'stabilizes and depresses the clavicle rather than primarily rotating the scapula'],
+[/suspensory ligaments|cooper.s ligaments/i,'tether mammary glandular tissue to the dermis; traction causes focal skin dimpling'],
+[/retromammary/i,'is a loose connective tissue plane allowing movement of the breast over deep fascia'],
+[/parasternal/i,'drains much of the medial breast, in contrast to the predominantly axillary drainage of the lateral breast'],
+[/axillary lymph/i,'drains much of the lateral breast and upper limb; disruption can cause arm lymphedema'],
+[/lactiferous/i,'forms part of the milk drainage system rather than the skin-supporting fibrous or lymphatic network'],
+[/superior thoracic artery/i,'arises from the first part of the axillary artery'],
+[/thoracoacromial/i,'arises from the second axillary artery segment deep to pectoralis minor'],
+[/lateral thoracic artery/i,'arises from the second part of the axillary artery and contributes to lateral breast supply'],
+[/subscapular artery/i,'arises from the third part of the axillary artery and branches into circumflex scapular and thoracodorsal vessels'],
+[/posterior circumflex humeral artery/i,'arises from the third axillary artery segment and travels near the axillary nerve'],
+[/cephalic vein/i,'runs in the deltopectoral groove and empties into the axillary vein'],
+[/basilic vein/i,'ascends medially and contributes to formation of the axillary vein'],
+[/brachial artery/i,'passes through the cubital fossa and divides into radial and ulnar arteries'],
+[/bicipital aponeurosis/i,'lies superficial to the brachial artery and median nerve in the cubital fossa'],
+[/annular ligament/i,'encircles the radial head and is implicated in nursemaid elbow'],
+[/psoriasis|psoriatic/i,'typically has well-demarcated scaly plaques, possible nail pitting and an IL-23/IL-17 inflammatory pathway'],
+[/pityriasis rosea/i,'often begins with a herald patch followed by oval lesions in a cleavage-line Christmas-tree pattern'],
+[/lichen planus/i,'features violaceous polygonal papules, Wickham striae and sometimes oral involvement'],
+[/seborrheic dermatitis/i,'produces greasy scale in sebum-rich areas such as the scalp and nasolabial folds'],
+[/guttate/i,'describes drop-like psoriatic papules, often after streptococcal pharyngitis'],
+[/inverse psoriasis/i,'predominantly affects skin folds with relatively little visible scale'],
+[/pustular psoriasis/i,'causes widespread sterile pustules and can have systemic illness'],
+[/spongiosis/i,'is intercellular epidermal edema typical of an eczematous process'],
+[/acantholysis/i,'is loss of keratinocyte cohesion, classically seen in pemphigus disorders'],
+[/parakeratosis/i,'is retention of nuclei in the stratum corneum, not a synonym for spongiosis'],
+[/type i hypersensitivity|ige|mast cell/i,'is immediate mast-cell/IgE-mediated reactivity rather than delayed T-cell contact allergy'],
+[/type ii hypersensitivity/i,'is antibody mediated against cellular or extracellular targets'],
+[/type iii hypersensitivity/i,'is mediated by deposited immune complexes'],
+[/type iv hypersensitivity|t lymphocytes/i,'is delayed T-cell-mediated reactivity, characteristic of allergic contact dermatitis'],
+[/patch test/i,'assesses delayed contact hypersensitivity, not immediate IgE-mediated allergy'],
+[/skin.prick/i,'tests immediate IgE-related reactivity, rather than delayed contact allergy'],
+[/irritant contact/i,'results from direct barrier injury without prior antigen-specific sensitization'],
+[/allergic contact/i,'is a delayed T-cell reaction requiring sensitization to the contact allergen'],
+[/atopic dermatitis/i,'reflects barrier dysfunction and chronic pruritic inflammation, usually managed with emollients and anti-inflammatory therapy'],
+[/eczema herpeticum/i,'presents with painful monomorphic vesicles or punched-out erosions due to herpes simplex infection'],
+[/perioral dermatitis/i,'produces periorificial papules, often exacerbated by topical corticosteroids'],
+[/impetigo/i,'is a superficial infection with honey-colored crusts or toxin-related bullae'],
+[/cellulitis/i,'is a spreading dermal/subcutaneous infection with erythema, warmth and tenderness'],
+[/erysipelas/i,'is a more sharply demarcated superficial streptococcal skin infection'],
+[/necrotizing fasciitis/i,'rapidly destroys deep fascia, often with severe pain, toxicity or later sensory loss'],
+[/gas gangrene/i,'is clostridial myonecrosis, often with severe pain, gas and rapid systemic deterioration'],
+[/pyoderma gangrenosum/i,'is an inflammatory ulcerative disorder that does not respond as expected to routine antibiotics'],
+[/ecthyma gangrenosum/i,'is classically associated with Pseudomonas and necrotic skin lesions, especially in immunocompromised patients'],
+[/hidradenitis|hydradenitis/i,'is recurrent follicular inflammation with abscesses or sinus tracts in intertriginous sites'],
+[/herpetic whitlow/i,'produces clustered painful HSV vesicles on a finger rather than a routine bacterial nail-fold abscess'],
+[/staphylococcus aureus|MRSA/i,'often causes purulent abscesses and toxin-mediated bullous impetigo; cocci form clusters'],
+[/streptococcus pyogenes|group a strep/i,'often causes nonpurulent cellulitis, erysipelas and lymphangitis; cocci form chains'],
+[/pseudomonas/i,'is a gram-negative pathogen associated with specific exposures or compromised hosts'],
+[/vibrio vulnificus/i,'is strongly associated with saltwater exposure and can cause rapidly progressive wound infections'],
+[/aeromonas/i,'is associated with freshwater exposure and potentially severe wound infections'],
+[/clostridium/i,'is an anaerobic organism associated with gas-producing deep soft-tissue infection'],
+[/bullous impetigo/i,'is a localized superficial staphylococcal toxin-mediated eruption with flaccid bullae'],
+[/gram.positive cocci in clusters/i,'suggest staphylococci rather than chain-forming streptococci'],
+[/gram.positive cocci in chains/i,'suggest streptococci rather than cluster-forming staphylococci'],
+[/gram.negative rods/i,'point toward gram-negative bacteria rather than classic staphylococcal or streptococcal skin infection'],
+[/mixed flora/i,'can occur in polymicrobial or chronic follicular infections but is not the expected pattern for a single-organism streptococcal syndrome'],
+[/morbilliform/i,'causes diffuse measles-like erythematous macules and papules without characteristic recurrent fixed plaques'],
+[/fixed drug eruption/i,'recurs at the same cutaneous site after re-exposure, often leaving hyperpigmentation'],
+[/urticaria/i,'consists of transient migrating wheals rather than fixed erosions or epidermal detachment'],
+[/erythema multiforme/i,'classically produces acral three-zone target lesions, often associated with HSV'],
+[/stevens.johnson|SJS/i,'involves severe mucocutaneous injury with under 10% epidermal detachment'],
+[/toxic epidermal necrolysis|TEN/i,'is severe epidermal detachment involving more than 30% of body surface'],
+[/DRESS|eosinophilia and systemic/i,'is a delayed drug reaction with systemic involvement, often fever, eosinophilia and organ injury'],
+[/RIME|reactive infectious mucocutaneous/i,'is infection-associated mucositis, not primarily a drug-driven epidermal necrolysis'],
+[/T1.weighted/i,'typically shows fat bright and free fluid relatively dark'],
+[/T2.weighted/i,'highlights free water and edema'],
+[/computed tomography|\bCT\b/i,'provides cross-sectional high-resolution osseous detail using X-rays'],
+[/magnetic resonance|\bMRI\b/i,'characterizes marrow edema, ligaments, menisci and other soft tissues'],
+[/ultrasound/i,'can dynamically evaluate superficial soft tissues but is less suited to deep complex bone anatomy'],
+[/scaphoid/i,'may be occult on initial radiographs and requires protection from displacement when clinically suspected'],
+[/transverse/i,'describes a fracture line approximately perpendicular to the long bone axis'],
+[/oblique/i,'describes a diagonal rather than transverse fracture line'],
+[/spiral/i,'describes a helical fracture pattern from rotational loading'],
+[/avulsion/i,'results from tensile pull by a tendon or ligament on a bony attachment'],
+[/stress fracture|stress reaction/i,'reflects repetitive load with early marrow changes detectable by MRI'],
+[/weightbearing/i,'shows joint-space narrowing under physiological load'],
+[/mortise/i,'is a specialized ankle view used with AP and lateral projections'],
+[/merchant|sunrise/i,'is a patellofemoral projection, not a standard ankle study']
+];
+function reviewOptionReason(q,i){
+ const l=letters[i],option=q.options[i];
+ if(l===q.answer)return q.explanation;
+ const faculty=q.explanation.match(new RegExp('(?:^|\\\\s)'+l+':\\\\s*([\\\\s\\\\S]*?)(?=\\\\s+[A-E]:\\\\s|$)'));
+ if(faculty&&faculty[1].trim())return faculty[1].trim();
+ const match=reviewConcepts.find(([re])=>re.test(option));
+ const concept=match?match[1]:'describes a different anatomical structure, clinical presentation, mechanism, or investigation';
+ const expected=q.options[letters.indexOf(q.answer)];
+ return option+' '+concept+'. The distinguishing findings in this vignette instead support '+expected+'.';
+}
+function renderDetailedReview(q,s){
+ const correct=q.options[letters.indexOf(q.answer)];
+ const status=s.submitted?(s.choice===q.answer?'Correctly answered':'Incorrect answer'):'Not submitted';
+ return '<div class="feedback '+(s.submitted&&s.choice===q.answer?'':'bad')+'" style="margin-top:14px">'+
+ '<strong>Advanced question review · '+esc(status)+'</strong>'+
+ '<p class="small"><b>Your answer:</b> '+esc(s.choice?(s.choice+' · '+q.options[letters.indexOf(s.choice)]):'Not submitted')+'<br><b>Correct answer:</b> '+esc(q.answer+' · '+correct)+'</p>'+
+ '<div style="margin:12px 0;padding:12px;border-left:4px solid #287958;background:#edf7ef;border-radius:9px"><b>Why the correct answer is right</b><p>'+esc(q.explanation)+'</p></div>'+
+ '<b>Every answer choice explained</b>'+
+ q.options.map((option,i)=>{const l=letters[i];return '<div style="padding:10px 0;border-bottom:1px solid #d7e2dc"><b>'+esc(l+'. '+option)+'</b> <span class="small">'+(l===q.answer?'· Correct':'· Why not')+'</span><p style="margin:5px 0 0">'+esc(reviewOptionReason(q,i))+'</p></div>'}).join('')+
+ '<div style="padding:12px 0 0"><b>High-yield takeaway</b><p>'+esc(q.explanation)+'</p></div></div>';
+}
+
+function render(){progress();const out=$('questions');out.innerHTML='';if(!attempt.length){out.innerHTML='<div class="panel empty">No questions match this filter. Try another combination.</div>';return;}for(const q of attempt){const s=state[q.id];if(flagOnly&&!s.flag)continue;let reveal=(complete||(s.submitted&&mode==='practice'));let card=document.createElement('section');card.className='question';card.id=q.id;card.innerHTML=`<div class="qhead"><span class="qnum">Question ${q.number}</span><span><span class="meta">Lecture ${q.lecture} · LO ${esc(q.objective)}</span> <span class="tag">${esc(q.difficulty)}</span></span></div><p class="stem" title="Select text while Highlight mode is active">${renderStem(q)}</p><div class="opts">${q.options.map((o,i)=>{let l=letters[i],checked=s.choice===l,css=(checked?' checked':'')+(s.submitted?' locked':'')+(reveal?(l===q.answer?' correct':checked?' incorrect':''):'');return `<div class="optionrow${crossed[q.id]?.includes(l)?' crossed':''}"><label class="option${css}"><input type="radio" name="${q.id}" value="${l}" ${checked?'checked':''} ${s.submitted||complete?'disabled':''}><strong>${l}.</strong><span class="optiontext">${esc(o)}</span></label><button type="button" class="crossout" data-letter="${l}" aria-label="Toggle strikethrough for choice ${l}" aria-pressed="${crossed[q.id]?.includes(l)?'true':'false'}" title="Cross out / restore this choice">S̶</button></div>`}).join('')}</div><div class="actions"><button class="btn submit" ${!s.choice||s.submitted||complete?'disabled':''}>${s.submitted?'Answer submitted':'Submit Answer'}</button><button class="iconbtn flag${s.flag?' flagged':''}">${s.flag?'★ Flagged':'☆ Flag for review'}</button><span class="small">${s.submitted?'Answer locked':'Choose one answer, then submit'}</span></div>${reveal?renderDetailedReview(q,s):''}`;
 card.querySelector('.stem').addEventListener('mouseup',e=>highlightSelection(q,e.currentTarget));card.querySelector('.stem').addEventListener('keyup',e=>highlightSelection(q,e.currentTarget));card.querySelectorAll('.crossout').forEach(btn=>btn.addEventListener('click',()=>{const letter=btn.dataset.letter;const set=new Set(crossed[q.id]||[]);if(set.has(letter))set.delete(letter);else set.add(letter);crossed[q.id]=[...set];btn.setAttribute('aria-pressed',String(set.has(letter)));btn.closest('.optionrow').classList.toggle('crossed',set.has(letter));}));card.querySelectorAll('input').forEach(e=>e.addEventListener('change',()=>{s.choice=e.value;renderPreserving(q.id)}));card.querySelector('.submit').addEventListener('click',()=>{if(!s.choice||s.submitted)return;s.submitted=true;renderPreserving(q.id)});card.querySelector('.flag').addEventListener('click',()=>{s.flag=!s.flag;renderPreserving(q.id)});out.appendChild(card)}$('anchors').innerHTML='<b>Jump to lecture</b>'+[5,6,7].map(n=>`<div><a href="#${(attempt.find(q=>q.lecture===n)||{}).id||''}">Lecture ${n} · ${TITLES[n]}</a></div>`).join('');}
 function renderPreserving(id){const top=document.getElementById(id)?.getBoundingClientRect().top||0;const y=window.scrollY;render();const newTop=document.getElementById(id)?.getBoundingClientRect().top;if(newTop!==undefined)window.scrollTo({top:y+newTop-top,behavior:'instant'});}
 function finish(){if(complete)return;complete=true;const submitted=attempt.filter(q=>state[q.id].submitted),correct=submitted.filter(q=>state[q.id].choice===q.answer).length;const pct=submitted.length?Math.round(correct/submitted.length*100):0;const allPct=attempt.length?Math.round(correct/attempt.length*100):0;$('result').innerHTML=`<div class="eyebrow" style="color:var(--leaf)">Attempt results</div><h2 style="margin:.3em 0">${correct} / ${submitted.length} correct on submitted questions</h2><p><b>${pct}%</b> accuracy on submitted answers · ${submitted.length}/${attempt.length} questions attempted · ${allPct}% of selected question bank answered correctly.</p><p class="small">Unsubmitted questions are not counted as correct. All explanations are now visible; unanswered questions show the keyed answer for review.</p><button class="btn secondary" id="topresults">Return to questions</button>`;$('result').classList.remove('hide');render();$('topresults').onclick=()=>document.querySelector('.question')?.scrollIntoView({behavior:'smooth'});$('result').scrollIntoView({behavior:'smooth'});}
