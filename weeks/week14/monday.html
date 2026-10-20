@@ -115,7 +115,7 @@ const reviewConcepts=[
 function reviewOptionReason(q,i){
  const l=letters[i],option=q.options[i];
  if(l===q.answer)return q.explanation;
- const faculty=q.explanation.match(new RegExp('(?:^|\\\\s)'+l+':\\\\s*([\\\\s\\\\S]*?)(?=\\\\s+[A-E]:\\\\s|$)'));
+ const faculty=q.explanation.match(new RegExp('(?:^|\\s)'+l+':\\s*([\\s\\S]*?)(?=\\s+[A-E]:\\s|$)'));
  if(faculty&&faculty[1].trim())return faculty[1].trim();
  const match=reviewConcepts.find(([re])=>re.test(option));
  const concept=match?match[1]:'describes a different anatomical structure, clinical presentation, mechanism, or investigation';
@@ -131,7 +131,7 @@ function renderDetailedReview(q,s){
  '<div style="margin:12px 0;padding:12px;border-left:4px solid #287958;background:#edf7ef;border-radius:9px"><b>Why the correct answer is right</b><p>'+esc(q.explanation)+'</p></div>'+
  '<b>Every answer choice explained</b>'+
  q.options.map((option,i)=>{const l=letters[i];return '<div style="padding:10px 0;border-bottom:1px solid #d7e2dc"><b>'+esc(l+'. '+option)+'</b> <span class="small">'+(l===q.answer?'· Correct':'· Why not')+'</span><p style="margin:5px 0 0">'+esc(reviewOptionReason(q,i))+'</p></div>'}).join('')+
- '<div style="padding:12px 0 0"><b>High-yield takeaway</b><p>'+esc(q.explanation)+'</p></div></div>';
+ '<div style="padding:12px 0 0"><b>High-yield takeaway</b><p>'+esc(q.explanation.split(/(?<=[.!?])\\s+/)[0])+'</p></div></div>';
 }
 
 function render(){progress();const out=$('questions');out.innerHTML='';if(!attempt.length){out.innerHTML='<div class="panel empty">No questions match this filter. Try another combination.</div>';return;}for(const q of attempt){const s=state[q.id];if(flagOnly&&!s.flag)continue;let reveal=(complete||(s.submitted&&mode==='practice'));let card=document.createElement('section');card.className='question';card.id=q.id;card.innerHTML=`<div class="qhead"><span class="qnum">Question ${q.number}</span><span><span class="meta">Lecture ${q.lecture} · LO ${esc(q.objective)}</span> <span class="tag">${esc(q.difficulty==="In-House"?"Easy":q.difficulty==="Step 1"?"Challenge":q.difficulty)}</span></span></div><p class="stem" title="Select text while Highlight mode is active">${renderStem(q)}</p><div class="opts">${q.options.map((o,i)=>{let l=letters[i],checked=s.choice===l,css=(checked?' checked':'')+(s.submitted?' locked':'')+(reveal?(l===q.answer?' correct':checked?' incorrect':''):'');return `<div class="optionrow ${crossed[q.id]?.includes(l)?'crossed':''}"><label class="option${css}"><input type="radio" name="${q.id}" value="${l}" ${checked?'checked':''} ${s.submitted||complete?'disabled':''}><strong>${l}.</strong><span class="optiontext">${esc(o)}</span></label><button type="button" class="crossout" data-letter="${l}" aria-label="Toggle strikethrough for choice ${l}" aria-pressed="${crossed[q.id]?.includes(l)?'true':'false'}" title="Cross out / restore this choice">S̶</button></div>`}).join('')}</div><div class="actions"><button class="btn submit" ${!s.choice||s.submitted||complete?'disabled':''}>${s.submitted?'Answer submitted':'Submit Answer'}</button><button class="iconbtn flag${s.flag?' flagged':''}">${s.flag?'★ Flagged':'☆ Flag for review'}</button><span class="small">${s.submitted?'Answer locked':'Choose one answer, then submit'}</span></div>${reveal?renderDetailedReview(q,s):''}`;
