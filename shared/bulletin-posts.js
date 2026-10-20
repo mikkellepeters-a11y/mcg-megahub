@@ -1,5 +1,20 @@
 window.MEGAHUB_BULLETIN_POSTS = [
   {
+    id: '2026-10-20-week14-quiz-release-timeline',
+    date: 'October 20, 2026',
+    createdAt: '2026-10-20T12:13:00-04:00',
+    category: 'Developer Update',
+    author: 'Mikkelle Peters',
+    role: 'MegaHub Developer',
+    title: 'Week 14 Quiz Upload Timeline',
+    body: [
+      '📅 TUESDAY, OCTOBER 20: Week 14 daily quizzes are scheduled to be uploaded today.',
+      '🔬 TUESDAY EVENING, OCTOBER 20: The Week 14 lab quiz will most likely be uploaded this evening.',
+      '📝 WEDNESDAY, OCTOBER 21: The Week 14 comprehensive quiz is planned for Wednesday.',
+      'These are anticipated upload times and may shift slightly as resources are finalized. Thanks for your patience!'
+    ]
+  },
+  {
     id: '2026-10-15-msk-week14-and-leaderboards',
     date: 'October 15, 2026',
     createdAt: '2026-10-15T17:30:00-04:00',
