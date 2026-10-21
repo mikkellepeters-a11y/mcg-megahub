@@ -279,9 +279,9 @@ function renderMSKFiled(){
  const root=document.getElementById('mskFiledList');if(!root)return;
  const items=reviewItems.filter(isMSKReviewItem);
  const byKey={};questionAttempts.filter(isMSK).forEach(q=>{const k=questionKey(q);if(!byKey[k])byKey[k]=q});
- if(!items.length){root.innerHTML='<div class="empty">No MSK items filed for review yet. Flag a question in the Monday quiz to save it here.</div>';return;}
+ if(!items.length){root.innerHTML='<div class="empty">No MSK items filed for review yet. Flag a question or review missed questions in an MSK quiz to save them here.</div>';return;}
  root.innerHTML=items.map(r=>{const q=byKey[questionKey(r)];const detail=q?[q.topic,q.difficulty].filter(Boolean).join(' · '):(r.note||r.reason||'Manually flagged');
- return `<div class="row"><div class="row-main"><div class="row-title">Week 13 · Question ${esc(r.question_id)}</div><div class="row-sub">${esc(detail)}</div></div><span class="badge">${fmtDate(r.created_at||r.updated_at)}</span></div>`;
+ return `<div class="row"><div class="row-main"><div class="row-title">Week ${esc(r.week||q?.week||'—')} · ${esc(r.quiz_id||'MSK')} · Question ${esc(r.question_id)}</div><div class="row-sub">${esc(detail)}</div></div><span class="badge">${fmtDate(r.created_at||r.updated_at)}</span></div>`;
  }).join('');
 }
 function renderReview(){
