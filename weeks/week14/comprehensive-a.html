@@ -161,6 +161,8 @@ async function mskEnqueue(table,row){try{if(!window.supabase){mskMessage('Supaba
 const mskOriginalStart=start;
 start=function(){mskOriginalStart();mskAttemptToken=mskId();mskStatus.style.display='none';void mskFlush();};
 function mskQuestionRow(q,answer){return {module_key:'msk',quiz_id:MSK_SYNC_QUIZ_ID,question_id:q.id,attempt_token:mskAttemptToken,week:'14',lecture:Number(q.lecture)===10?'HPC':'Lecture '+q.lecture,topic:Number(q.lecture)===10?'HPC':'Lecture '+q.lecture,difficulty:/challenge|step.?1/i.test(q.difficulty)?'Step 1':/intermediate/i.test(q.difficulty)?'Intermediate':'Easy',selected_answer:answer,correct_answer:q.answer,is_correct:answer===q.answer,metadata:{source:'week14_comprehensive_a',quiz_name:MSK_SYNC_QUIZ_NAME,category:[1,2,7].includes(Number(q.lecture))?'anatomy':'general'}};}
+function mskReviewRow(q,why){
+return {module_key:'msk',quiz_id:MSK_SYNC_QUIZ_ID,question_id:q.id,week:'14',lecture:Number(q.lecture)===10?'HPC':'Lecture '+q.lecture,topic:TITLES[q.lecture]||'Week 14',difficulty:/step.?1/i.test(q.difficulty)?'Step 1':/intermediate/i.test(q.difficulty)?'Intermediate':'Easy',reason:why==='flag'?'Manually flagged':'Missed answer',review_reasons:[why==='flag'?'filed':'incorrect'],manually_filed:why==='flag',status:'active',question_snapshot:{id:q.id,stem:q.stem,options:q.options,answer:q.answer,explanation:q.explanation,review:q.review},metadata:{source:'week14_comprehensive_a',category:[1,2,7].includes(Number(q.lecture))?'anatomy':'general'}};}
 function mskQuizRow(){const submitted=attempt.filter(q=>state[q.id]?.submitted);const correct=submitted.filter(q=>state[q.id].choice===q.answer).length;return {module_key:'msk',quiz_id:MSK_SYNC_QUIZ_ID,quiz_name:MSK_SYNC_QUIZ_NAME,attempt_token:mskAttemptToken,score:correct,total_questions:submitted.length,percentage:submitted.length?100*correct/submitted.length:0,mode,metadata:{week:'14',selected_question_count:attempt.length,source:'week14_comprehensive_a'}};}
 async function mskFlush(){if(mskSending){mskNeedsFlush=true;return;}if(!mskReadQueue().length)return;mskSending=true;let failure=false;try{
   if(!window.supabase){mskMessage('Leaderboard sync waiting for connection.',true);return;}
@@ -182,6 +184,12 @@ document.getElementById('questions').addEventListener('click',e=>{
   const q=BANK.find(x=>x.id===button.closest('.question')?.id);
   if(!q||!state[q.id]?.choice||state[q.id].submitted||complete)return;
   mskEnqueue('question_attempts',mskQuestionRow(q,state[q.id].choice));
+  if(state[q.id].choice!==q.answer)mskEnqueue('review_items',mskReviewRow(q,'incorrect'));
+},true);
+document.getElementById('questions').addEventListener('click',e=>{
+ const button=e.target.closest('button.flag');if(!button)return;
+ const q=BANK.find(x=>x.id===button.closest('.question')?.id);
+ if(q&&state[q.id]&&!state[q.id].flag)mskEnqueue('review_items',mskReviewRow(q,'flag'));
 },true);
 document.getElementById('finish').addEventListener('click',()=>{
   if(complete||!attempt.some(q=>state[q.id]?.submitted))return;
