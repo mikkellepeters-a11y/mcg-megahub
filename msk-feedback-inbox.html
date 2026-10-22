@@ -1,0 +1,42 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MSK Feedback Inbox · MegaHub</title>
+<style>:root{--dark:#183b2a;--green:#28543d;--line:#ceddd3;--paper:#fbfdfb;--muted:#63736a}*{box-sizing:border-box}body{margin:0;background:#edf3ef;color:#21362b;font-family:Inter,system-ui,sans-serif}header{background:linear-gradient(120deg,var(--dark),var(--green));color:white;padding:27px 20px}header>div,main{max-width:1000px;margin:auto}a{color:inherit}header a{font-size:12px}h1{margin:15px 0 5px;font-size:32px}header p{margin:0;color:#e0eee4;font-size:13px}main{padding:24px 20px 70px}.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:17px}select,button,textarea{font:inherit}select,button{border:1px solid #b9d1c0;border-radius:10px;padding:9px 12px;background:white;color:var(--green)}button{cursor:pointer;font-weight:700}button:hover{background:#e3ece6}.count{margin-left:auto;font-size:12px;font-weight:800;color:var(--green)}.item{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:19px;margin:12px 0;box-shadow:0 10px 25px #183b2a10}.item header{all:unset;display:flex;gap:8px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}.author{font-weight:850}.details{font-size:12px;color:var(--muted);margin-top:4px}.message{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:14px;margin:18px 0}.pill{font-size:11px;padding:5px 9px;border-radius:99px;border:1px solid var(--line);background:#e3ece6;font-weight:800}.controls{display:flex;flex-wrap:wrap;gap:9px;align-items:center}.note{width:100%;min-height:55px;border:1px solid var(--line);border-radius:10px;padding:10px;margin:12px 0;resize:vertical;font-size:13px}.status{font-size:12px;color:var(--muted)}#gate{background:white;border:1px solid var(--line);padding:18px;border-radius:12px}#inbox[hidden]{display:none}</style>
+</head><body><header><div><a href="MSK.html">← Back to MSK Hub</a><h1>Feedback Inbox</h1><p>Private admin view · Review suggestions, fixes, and requests.</p></div></header><main><p id="gate">Checking administrator access…</p><section id="inbox" hidden><div class="toolbar"><label for="filter">Show</label><select id="filter"><option value="all">All feedback</option><option value="new">New</option><option value="reviewed">Reviewed</option><option value="resolved">Resolved</option></select><button id="refresh">Refresh</button><span class="count" id="count"></span></div><div id="items"></div></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(async()=>{
+ const gate=document.querySelector('#gate'),inbox=document.querySelector('#inbox'),items=document.querySelector('#items');
+ const sb=window.supabase.createClient('https://ofqfdnxpftifnvxnvppe.supabase.co','sb_publishable_06zYj2REZQMC8nXfhm7weQ_Nrotri7G');
+ const {data:{user},error:authErr}=await sb.auth.getUser();
+ if(authErr||!user){gate.textContent='Please sign in to your MegaHub account first.';return}
+ const {data:admin,error:adminErr}=await sb.rpc('is_site_admin');
+ if(adminErr||admin!==true){gate.textContent='This inbox is restricted to site administrators.';return}
+ gate.hidden=true;inbox.hidden=false;
+ let records=[];
+ const render=()=>{
+  items.replaceChildren();
+  const filter=document.querySelector('#filter').value;
+  const visible=records.filter(r=>filter==='all'||r.status===filter);
+  document.querySelector('#count').textContent=records.filter(r=>r.status==='new').length+' new · '+records.length+' total';
+  if(!visible.length){items.textContent='No feedback matches this filter.';return}
+  for(const r of visible){
+   const card=document.createElement('article');card.className='item';
+   const head=document.createElement('header');const who=document.createElement('div');const author=document.createElement('div');author.className='author';author.textContent=r.username;
+   const meta=document.createElement('div');meta.className='details';meta.textContent=new Date(r.created_at).toLocaleString();
+   who.append(author,meta);
+   const badge=document.createElement('span');badge.className='pill';badge.textContent=r.status;
+   head.append(who,badge);
+   const message=document.createElement('div');message.className='message';message.textContent=r.message;
+   const notes=document.createElement('textarea');notes.className='note';notes.placeholder='Private admin notes (optional)';notes.value=r.admin_note||'';
+   const controls=document.createElement('div');controls.className='controls';
+   const select=document.createElement('select');
+   for(const v of ['new','reviewed','resolved']){const opt=document.createElement('option');opt.value=v;opt.textContent=v[0].toUpperCase()+v.slice(1);select.append(opt)}select.value=r.status;
+   const save=document.createElement('button');save.textContent='Save changes';
+   const status=document.createElement('span');status.className='status';
+   save.onclick=async()=>{save.disabled=true;status.textContent='Saving…';const {error}=await sb.from('msk_feedback').update({status:select.value,admin_note:notes.value,updated_at:new Date().toISOString()}).eq('id',r.id);save.disabled=false;if(error){status.textContent='Error: '+error.message}else{r.status=select.value;r.admin_note=notes.value;status.textContent='Saved';render()}};
+   controls.append(select,save,status);
+   card.append(head,message,notes,controls);items.append(card);
+  }
+ };
+ const load=async()=>{items.textContent='Loading feedback…';const {data,error}=await sb.from('msk_feedback').select('id,username,message,status,created_at,admin_note').order('created_at',{ascending:false}).limit(500);if(error){items.textContent='Unable to load feedback: '+error.message;return}records=data||[];render()};
+ document.querySelector('#refresh').onclick=load;document.querySelector('#filter').onchange=render;await load();
+})();
+</script></body></html>
