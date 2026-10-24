@@ -222,6 +222,29 @@ footer{padding:0 22px 34px;color:#8a7b70;font-size:12px}
 .support-dismiss{background:transparent;color:var(--brown);border:1px solid var(--line)}
 
 </style>
+<style>
+/* White Coat Class of 2030 celebration, Oct 24–30, 2026 */
+#wc2030{position:fixed;inset:0;z-index:2147483646;display:flex;align-items:center;justify-content:center;padding:26px 15px;background:radial-gradient(circle at 50% 15%,#365d50 0%,#133d33 55%,#092821 100%);overflow:hidden;isolation:isolate}
+#wc2030[hidden]{display:none}
+#wc2030 .wc-confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#wc2030 .wc-star{position:absolute;font-size:clamp(15px,3vw,27px);color:#fff0b6;opacity:.72;animation:wc-twinkle 3.4s ease-in-out infinite alternate}
+#wc2030 .wc-balloon{position:absolute;width:clamp(40px,7vw,75px);height:clamp(54px,9vw,93px);border-radius:52% 52% 48% 48%;background:var(--balloon);box-shadow:inset -10px -9px 15px #0000001c,inset 8px 6px 12px #ffffff7e;opacity:.92;animation:wc-float 6s ease-in-out infinite alternate;transform:rotate(var(--tilt))}
+#wc2030 .wc-balloon:after{content:"";position:absolute;top:100%;left:50%;height:clamp(45px,10vw,100px);border-left:1px solid #ffffff8a;transform:rotate(3deg)}
+#wc2030 .wc-card{position:relative;z-index:1;width:min(760px,100%);max-height:min(88vh,920px);overflow-y:auto;overscroll-behavior:contain;background:linear-gradient(160deg,#fffdf6,#f2f9f1);border:2px solid #d5bf88;border-radius:23px;padding:clamp(23px,4.2vw,47px);box-shadow:0 26px 100px #001b1380;text-align:center;color:#263e31}
+#wc2030 .wc-kicker{font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.18em;color:#496d55}
+#wc2030 .wc-icon{font-size:33px;margin:8px 0}
+#wc2030 h2{margin:8px 0 15px;font:700 clamp(25px,4vw,40px)/1.15 Georgia,serif;color:#1d4d39}
+#wc2030 .wc-message{text-align:left;font:clamp(13px,1.65vw,15px)/1.75 system-ui,-apple-system,sans-serif;color:#35493c}
+#wc2030 .wc-message p{margin:0 0 14px}
+#wc2030 .wc-close{position:absolute;right:12px;top:12px;border:1px solid #c3d8c7;background:#fff;border-radius:50%;color:#385b42;width:38px;height:38px;font-size:24px;cursor:pointer}
+#wc2030 .wc-continue{display:block;margin:22px auto 6px;padding:14px 24px;background:#205741;border:1px solid #205741;color:white;border-radius:12px;font:700 15px system-ui;cursor:pointer}
+#wc2030 .wc-continue:hover{background:#113b2d}
+#wc2030 .wc-foot{font-size:11px;color:#758478}
+@keyframes wc-twinkle{from{opacity:.16;transform:scale(.6) rotate(-12deg)}to{opacity:.93;transform:scale(1.2) rotate(12deg)}}
+@keyframes wc-float{from{transform:translateY(20px) rotate(var(--tilt))}to{transform:translateY(-38px) rotate(calc(var(--tilt) * -1))}}
+@media(prefers-reduced-motion:reduce){#wc2030 .wc-star,#wc2030 .wc-balloon{animation:none!important}}
+@media(max-width:650px){#wc2030{padding:11px}#wc2030 .wc-card{max-height:95vh;padding:30px 20px 22px}#wc2030 .wc-balloon{opacity:.5}}
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -435,7 +458,7 @@ footer{padding:0 22px 34px;color:#8a7b70;font-size:12px}
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="shared/bulletin-posts.js?v=20261020-week14-timeline"></script>
+<script src="shared/bulletin-posts.js?v=20261024-white-coat"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL='https://ofqfdnxpftifnvxnvppe.supabase.co';
@@ -738,6 +761,25 @@ window.addEventListener('focus',async()=>{
   document.getElementById('supportClose').addEventListener('click',close);
   document.getElementById('supportNoThanks').addEventListener('click',close);
   dialog.addEventListener('click',e=>{if(e.target===dialog)close()});
+})();
+</script>
+<div id="wc2030" role="dialog" aria-modal="true" aria-labelledby="wc2030title" aria-describedby="wc2030message" hidden><div class="wc-confetti"><span class="wc-balloon" style="left:3%;top:12%;--balloon:#e6bc7c;--tilt:-12deg;animation-delay:0s" aria-hidden="true"></span><span class="wc-balloon" style="left:85%;top:7%;--balloon:#d5ecdd;--tilt:8deg;animation-delay:1s" aria-hidden="true"></span><span class="wc-balloon" style="left:6%;top:72%;--balloon:#f6dca8;--tilt:13deg;animation-delay:2s" aria-hidden="true"></span><span class="wc-balloon" style="left:88%;top:72%;--balloon:#a8d3bc;--tilt:-8deg;animation-delay:1.5s" aria-hidden="true"></span><span class="wc-balloon" style="left:17%;top:86%;--balloon:#e6a99c;--tilt:9deg;animation-delay:2.5s" aria-hidden="true"></span><span class="wc-balloon" style="left:76%;top:83%;--balloon:#f5d6e7;--tilt:-11deg;animation-delay:0.5s" aria-hidden="true"></span><span class="wc-star" style="left:13%;top:7%;animation-delay:0s" aria-hidden="true">✦</span><span class="wc-star" style="left:60%;top:36%;animation-delay:0.47s" aria-hidden="true">✧</span><span class="wc-star" style="left:11%;top:65%;animation-delay:0.94s" aria-hidden="true">✧</span><span class="wc-star" style="left:58%;top:0%;animation-delay:1.41s" aria-hidden="true">✦</span><span class="wc-star" style="left:9%;top:29%;animation-delay:1.88s" aria-hidden="true">✧</span><span class="wc-star" style="left:56%;top:58%;animation-delay:2.3499999999999996s" aria-hidden="true">✧</span><span class="wc-star" style="left:7%;top:87%;animation-delay:2.82s" aria-hidden="true">✦</span><span class="wc-star" style="left:54%;top:22%;animation-delay:3.29s" aria-hidden="true">✧</span><span class="wc-star" style="left:5%;top:51%;animation-delay:3.76s" aria-hidden="true">✧</span><span class="wc-star" style="left:52%;top:80%;animation-delay:0s" aria-hidden="true">✦</span><span class="wc-star" style="left:3%;top:15%;animation-delay:0.47s" aria-hidden="true">✧</span><span class="wc-star" style="left:50%;top:44%;animation-delay:0.94s" aria-hidden="true">✧</span><span class="wc-star" style="left:1%;top:73%;animation-delay:1.41s" aria-hidden="true">✦</span><span class="wc-star" style="left:48%;top:8%;animation-delay:1.88s" aria-hidden="true">✧</span><span class="wc-star" style="left:95%;top:37%;animation-delay:2.3499999999999996s" aria-hidden="true">✧</span><span class="wc-star" style="left:46%;top:66%;animation-delay:2.82s" aria-hidden="true">✦</span><span class="wc-star" style="left:93%;top:1%;animation-delay:3.29s" aria-hidden="true">✧</span><span class="wc-star" style="left:44%;top:30%;animation-delay:3.76s" aria-hidden="true">✧</span><span class="wc-star" style="left:91%;top:59%;animation-delay:0s" aria-hidden="true">✦</span><span class="wc-star" style="left:42%;top:88%;animation-delay:0.47s" aria-hidden="true">✧</span><span class="wc-star" style="left:89%;top:23%;animation-delay:0.94s" aria-hidden="true">✧</span><span class="wc-star" style="left:40%;top:52%;animation-delay:1.41s" aria-hidden="true">✦</span><span class="wc-star" style="left:87%;top:81%;animation-delay:1.88s" aria-hidden="true">✧</span><span class="wc-star" style="left:38%;top:16%;animation-delay:2.3499999999999996s" aria-hidden="true">✧</span></div><div class="wc-card"><button type="button" class="wc-close" id="wc2030close" aria-label="Close celebration">×</button><div class="wc-kicker">MCG Class of 2030 · A note from Mikkelle</div><div class="wc-icon" aria-hidden="true">🤍 ✨ 🎈</div><h2 id="wc2030title">Congratulations on Your White Coat!</h2><div id="wc2030message" class="wc-message"><p>Congratulations on your White Coat Ceremony! I hope this weekend gave you a moment to look around, take it all in, and realize just how far you've come.</p><p>Every single one of us has a different story of how we got here. Different sacrifices, different challenges, and different people who believed in us long before we ever put on a white coat. I hope that when you slipped yours on for the first time, you felt the weight of everything it took to get here, but also the incredible privilege of everything that lies ahead.</p><p>One of the greatest things about being at MCG has been getting to know all of you. I am already so proud to call you my classmates. I've seen that greatness in the little moments, whether it's someone helping a friend understand a difficult concept, offering encouragement after a long day, or celebrating a classmate's small victory like it's their own.</p><p>Someday, one of you will perform a surgery that changes someone's life. Someone will make a discovery that changes how we practice medicine. Someone will be the physician a family remembers forever because you were there when they needed you most. And when those days come, I know I'll be just as proud of you as I am right now.</p><p><strong>But I hope you know that you don't have to wait for those moments to become someone worth celebrating. You already are.</strong></p><p>I hope we never lose sight of what brought us here, how much we have to learn from one another, and how lucky we are to get to share this journey.</p><p><strong>Here's to the Class of 2030, to the physicians we're becoming, and to the people we already are. 🤍</strong></p><p>With love,<br><strong>Mikkelle</strong></p></div><button type="button" class="wc-continue" id="wc2030continue">Continue to MegaHub →</button><div class="wc-foot">A special message for our class</div></div></div>
+<script>
+(()=>{
+  const popup=document.getElementById('wc2030'),close=document.getElementById('wc2030close');
+  if(!popup||!close)return;
+  const key='megahub-whitecoat-2030-seen-v1';
+  const now=Date.now();
+  // Available immediately through Friday Oct 30, 11:59:59 PM Eastern.
+  const expires=Date.parse('2026-10-31T00:00:00-04:00');
+  let seen=false;try{seen=localStorage.getItem(key)==='1'}catch(_){}
+  if(now>=expires||seen)return;
+  const previousFocus=document.activeElement,oldOverflow=document.body.style.overflow;
+  popup.hidden=false;document.body.style.overflow='hidden';close.focus();
+  const dismiss=()=>{try{localStorage.setItem(key,'1')}catch(_){}popup.hidden=true;document.body.style.overflow=oldOverflow;previousFocus?.focus?.()};
+  close.addEventListener('click',dismiss);
+  document.getElementById('wc2030continue').addEventListener('click',dismiss);
+  popup.addEventListener('keydown',e=>{if(e.key==='Escape'){dismiss();return}if(e.key==='Tab'){const nodes=[close,document.getElementById('wc2030continue')];const pos=nodes.indexOf(document.activeElement);if(e.shiftKey&&pos===0){e.preventDefault();nodes[1].focus()}else if(!e.shiftKey&&pos===1){e.preventDefault();nodes[0].focus()}}});
 })();
 </script>
 </body>
