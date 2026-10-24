@@ -1,5 +1,15 @@
 window.MEGAHUB_BULLETIN_POSTS = [
   {
+    id: "2026-10-24-class-of-2030-white-coat-congratulations",
+    date: "October 24, 2026",
+    createdAt: "2026-10-24T17:56:00-04:00",
+    category: "Class Celebration",
+    author: "Mikkelle Peters",
+    role: "Your Classmate",
+    title: "Congratulations on Your White Coat! 🤍",
+    body: ["Congratulations on your White Coat Ceremony! I hope this weekend gave you a moment to look around, take it all in, and realize just how far you've come.","Every single one of us has a different story of how we got here. Different sacrifices, different challenges, and different people who believed in us long before we ever put on a white coat. I hope that when you slipped yours on for the first time, you felt the weight of everything it took to get here, but also the incredible privilege of everything that lies ahead.","One of the greatest things about being at MCG has been getting to know all of you. I am already so proud to call you my classmates. I've seen that greatness in the little moments, whether it's someone helping a friend understand a difficult concept, offering encouragement after a long day, or celebrating a classmate's small victory like it's their own.","Someday, one of you will perform a surgery that changes someone's life. Someone will make a discovery that changes how we practice medicine. Someone will be the physician a family remembers forever because you were there when they needed you most. And when those days come, I know I'll be just as proud of you as I am right now.","But I hope you know that you don't have to wait for those moments to become someone worth celebrating. You already are.","I hope we never lose sight of what brought us here, how much we have to learn from one another, and how lucky we are to get to share this journey.","Here's to the Class of 2030, to the physicians we're becoming, and to the people we already are. 🤍","With love, Mikkelle"]
+  },
+  {
     id: '2026-10-20-week14-quiz-release-timeline',
     date: 'October 20, 2026',
     createdAt: '2026-10-20T12:13:00-04:00',
