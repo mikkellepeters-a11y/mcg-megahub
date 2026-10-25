@@ -1,6 +1,8 @@
 (()=>{
   const CBL_GROUPS=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ','AA','BB','CC','DD'];
-  const HOUSE_GROUPS=[...'ABCDEFGHIJKLMN'];
+  const AUGUSTA_HOUSES=[...'ABCDEFGHIJKLMN'];
+  const SAVANNAH_HOUSES=['Sapelo','Tybee','Jekyll','Cumberland'];
+  const HOUSE_GROUPS=[...AUGUSTA_HOUSES,...SAVANNAH_HOUSES];
   const ANATOMY_TABLES=Array.from({length:30},(_,i)=>String(i+1));
   const PCL_GROUPS=Array.from({length:66},(_,i)=>String(i+1));
   const FOUNDATION_UNLOCK_AT=Date.parse('2026-10-01T18:00:00Z'); // 2:00 PM EDT
@@ -13,6 +15,17 @@
     {key:'house',inputId:'houseGroup',chipId:'profileHouse',label:'House',options:HOUSE_GROUPS,empty:'No House selected',display:v=>`House ${v}`}
   ];
 
+  function selectedCampus(){return document.getElementById('campusSelect')?.value||'';}
+  function optionsForHouse(){return selectedCampus()==='Savannah'?SAVANNAH_HOUSES:selectedCampus()==='Augusta'?AUGUSTA_HOUSES:[];}
+  function updateHouseSelect(preserve=false){
+    const select=document.getElementById('houseGroup');
+    if(!select)return;
+    const previous=select.value;
+    const options=optionsForHouse();
+    select.innerHTML='<option value="">'+(selectedCampus()?'No House selected':'Select campus first')+'</option>'+options.map(value=>'<option value="'+escapeHtml(value)+'">'+escapeHtml(selectedCampus()==='Augusta'?'House '+value:value)+'</option>').join('');
+    select.disabled=!selectedCampus();
+    if(preserve&&options.includes(previous))select.value=previous;
+  }
   let groupMembers={cbl_group:[],anatomy_table:[],pcl_group:[],house:[]};
   let groupMembersLoading=false;
   let groupMembersSignature=null;
@@ -127,7 +140,7 @@
       wrap.id='academicGroupMemberships';
       wrap.innerHTML=`
         <div class="academic-memberships-head">
-          <span class="academic-memberships-title">Your Groups</span>
+          <span class="academic-memberships-title">Your Groups · <span id="academicCampusLabel">Campus not selected</span></span>
           <span class="academic-memberships-hint">Hover or tap to see classmates</span>
         </div>
         <div class="academic-group-grid">
@@ -147,6 +160,14 @@
 
     const grid=document.querySelector('#panel-settings .card:first-child .form-grid');
     if(grid){
+      if(!document.getElementById('campusSelect')){
+        const field=document.createElement('div');field.className='field';
+        const label=document.createElement('label');label.htmlFor='campusSelect';label.textContent='Campus';
+        const select=document.createElement('select');select.id='campusSelect';
+        select.innerHTML='<option value="">Select campus</option><option value="Augusta">Augusta</option><option value="Savannah">Savannah</option>';
+        select.addEventListener('change',()=>updateHouseSelect(false));
+        field.append(label,select);grid.prepend(field);
+      }
       PROFILE_GROUPS.forEach(group=>{
         const existing=document.getElementById(group.inputId);
         if(existing){
@@ -165,11 +186,18 @@
         field.append(label,makeGroupSelect(group));
         grid.appendChild(field);
       });
+      updateHouseSelect(true);
     }
   }
 
   function renderGroups(){
     ensureGroupUI();
+    const campus=document.getElementById('campusSelect');
+    const storedCampus=profileRow?.campus||(!profileRow?.campus&&AUGUSTA_HOUSES.includes(profileRow?.house)?'Augusta':'');
+    if(campus&&document.activeElement!==campus)campus.value=storedCampus;
+    updateHouseSelect(true);
+    const campusLabel=document.getElementById('academicCampusLabel');
+    if(campusLabel)campusLabel.textContent=storedCampus?storedCampus+' Campus':'Campus not selected';
     PROFILE_GROUPS.forEach(group=>{
       const value=String((typeof profileRow!=='undefined'&&profileRow?.[group.key])||'').trim();
       const input=document.getElementById(group.inputId);
@@ -203,7 +231,7 @@
 
   function membershipSignature(){
     if(typeof profileRow==='undefined'||!profileRow)return null;
-    return PROFILE_GROUPS.map(group=>String(profileRow?.[group.key]||'').trim().toLowerCase()).join('|');
+    return [String(profileRow?.campus||'').trim().toLowerCase(),...PROFILE_GROUPS.map(group=>String(profileRow?.[group.key]||'').trim().toLowerCase())].join('|');
   }
 
   async function loadGroupMembers(force=false){
@@ -453,7 +481,10 @@
       const name=document.getElementById('displayName').value.trim()||null;
       const rawYear=document.getElementById('classYear').value;
       const year=rawYear?Number(rawYear):null;
-      const row={id:currentUser.id,display_name:name,class_year:year};
+      const campus=selectedCampus();
+      const house=document.getElementById('houseGroup')?.value||null;
+      if(house&&!campus){msg.className='notice error';msg.textContent='Choose a campus before selecting a house.';return;}
+      const row={id:currentUser.id,display_name:name,class_year:year,campus:campus||null};
       PROFILE_GROUPS.forEach(group=>{row[group.key]=document.getElementById(group.inputId)?.value||null});
 
       const {data,error}=await supabaseClient.from('profiles').upsert(row,{onConflict:'id'}).select().single();
