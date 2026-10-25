@@ -16,10 +16,13 @@
     #mskLeaderboardButton{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:9px 13px;border-radius:11px;background:#28543d;color:#fff!important;text-decoration:none;font-size:11px;font-weight:850;box-shadow:0 6px 14px rgba(24,59,42,.14)}
     #mskLeaderboardButton:hover{background:#183b2a}
     #mskLeaderboardButton .leader-dot{width:9px;height:9px;border-radius:50%;background:#fff;display:inline-block;flex:0 0 auto}
-    /* Week 14: match active cards and pin week number to top-right */
+    /* Active-week cards: match established layout and pin week number top-right */
     [data-name="MSK-Skin Week 14"].active-card .card-top{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;width:100%!important}
     [data-name="MSK-Skin Week 14"].active-card .card-top .week-label{margin-left:auto!important;order:99!important;position:relative!important;top:auto!important;right:auto!important;flex-shrink:0!important}
     [data-name="MSK-Skin Week 14"].active-card .locked-badge{display:none!important}
+    [data-name="MSK-Skin Week 15"].active-card .card-top{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;width:100%!important}
+    [data-name="MSK-Skin Week 15"].active-card .card-top .week-label{margin-left:auto!important;order:99!important;position:relative!important;top:auto!important;right:auto!important;flex-shrink:0!important}
+    [data-name="MSK-Skin Week 15"].active-card .locked-badge{display:none!important}
     #mskFeedbackPanel{margin-top:28px;background:linear-gradient(180deg,#fbfdfb,#f6faf7);border:1px solid #ceddd3;border-radius:22px;box-shadow:0 14px 34px rgba(24,59,42,.08);padding:20px}
     #mskFeedbackPanel .feedback-grid{display:grid;grid-template-columns:1fr;gap:14px}
     #mskFeedbackPanel .feedback-card{border:1px solid #ceddd3;background:#fbfdfb;border-radius:16px;padding:18px}
@@ -49,6 +52,7 @@
   const runtime=`<script id="mskPublicRuntime">(()=>{
     const routeMap={
       'MSK-Skin Week 13':'weeks/week13/index.html',
+      'MSK-Skin Week 15':'weeks/week15/index.html',
       'Gross Anatomy Lab':'weeks/gross-anatomy/index.html',
       'MSK-Skin Drug Hub':'weeks/msk-drug-hub/index.html',
       'MSK-Skin Pathology Hub':'weeks/msk-pathology-hub/index.html',
@@ -220,6 +224,39 @@
         el.onclick=null;
         const badge=el.querySelector('.locked-badge');if(badge)badge.remove();
       });
+
+      // Match Week 15 to the other unlocked week cards, retaining its own title and link.
+      const w15=document.querySelector('[data-name="MSK-Skin Week 15"]');
+      const w13ref=document.querySelector('[data-name="MSK-Skin Week 13"]');
+      if(w15){
+        w15.classList.remove('placeholder','locked-card');
+        w15.classList.add('active-card');
+        w15.setAttribute('href','weeks/week15/index.html');
+        w15.setAttribute('aria-label','Open Week 15');
+        w15.removeAttribute('onclick');
+        w15.onclick=null;
+        w15.querySelectorAll('.locked-badge').forEach(el=>el.remove());
+        const top=w15.querySelector('.card-top');
+        if(top){
+          top.querySelectorAll('.week-label').forEach(el=>el.remove());
+          const label=document.createElement('span');
+          label.className='week-label';
+          label.textContent='Week 15';
+          top.appendChild(label);
+        }
+        const heading=w15.querySelector('h3');
+        if(heading){
+          w15.querySelectorAll('.active-desc,.active-footer').forEach(el=>el.remove());
+          const desc=(w13ref?.querySelector('.active-desc')?.cloneNode(true))||document.createElement('p');
+          desc.className='active-desc';
+          desc.textContent='Bone and cartilage, upper-limb anatomy, health systems science, and clinical review resources.';
+          heading.insertAdjacentElement('afterend',desc);
+          const footer=(w13ref?.querySelector('.active-footer')?.cloneNode(true))||document.createElement('div');
+          footer.className='active-footer';
+          if(!w13ref?.querySelector('.active-footer'))footer.innerHTML='<div class="active-tags"><span class="active-tag">Companions</span><span class="active-tag">Factoids</span><span class="active-tag">Review</span></div><div class="active-arrow">→</div>';
+          desc.insertAdjacentElement('afterend',footer);
+        }
+      }
 
       const cbl=document.querySelector('[data-name="MSK-Skin CBL"]');
       if(cbl){
