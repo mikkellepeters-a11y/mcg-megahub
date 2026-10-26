@@ -16,7 +16,7 @@ function addStyles(){
 }
 function contentId(lecture,type){return 'msk-w15-l'+lecture+'-'+type}
 function getLectureInfo(el){
- const n=q('.lnum,.lecture-num',el),lecture=normNum(n&&n.textContent);
+ const cards=qa('.lecture,.lecture-card'),index=cards.indexOf(el);const lecture=normNum(index+1);
  const titleEl=q('h3',el)||qa('strong',el).find(x=>!x.closest('.lecture-actions')&&!x.closest('.resource-row'));
  return {lecture:lecture,title:(titleEl&&titleEl.textContent||('Lecture '+lecture)).trim()};
 }
