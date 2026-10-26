@@ -24,7 +24,7 @@ const css=document.createElement('style');css.textContent=`
 `;document.head.append(css);
 const client=()=>window.supabase?.createClient(URL,KEY);
 let supa,admin=false,notes=new Map();
-const ids=cards.map((card,i)=>{const number=(card.querySelector('.lnum')?.textContent||'').trim();const key=/^\d+$/.test(number)?'lecture-'+Number(number):'lecture-'+(i+1);card.dataset.mikkelleLectureKey=key;return key;});
+const ids=cards.map((card,i)=>{const number=(card.querySelector('.lnum')?.textContent||'').trim();const key=week==='15'?'lecture-'+(i+1):(/^\d+$/.test(number)?'lecture-'+Number(number):'lecture-'+(i+1));card.dataset.mikkelleLectureKey=key;return key;});
 const place=(card,element)=>{const actions=card.querySelector('.lecture-actions');(actions||card).insertAdjacentElement('afterend',element);};
 const render=()=>cards.forEach(card=>{
 card.querySelectorAll('.mikkelle-note,.mikkelle-note-add').forEach(x=>x.remove());
