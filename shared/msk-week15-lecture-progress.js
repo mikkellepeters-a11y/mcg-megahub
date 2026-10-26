@@ -51,7 +51,7 @@ function count(type){return [...rows.values()].filter(r=>r.completed===true&&r.c
 function updateSummary(){
  const box=document.getElementById('mskWeekProgressSummary');if(!box)return;
  if(!user){box.innerHTML='<div class="ps-left"><span class="ps-title">Week 15 Progress</span><span class="ps-stat">Sign in to save lecture and resource completion.</span></div><span class="ps-note">Progress syncs to your MegaHub account.</span>';return}
- box.innerHTML='<div class="ps-left"><span class="ps-title">Week 15 Progress</span><span class="ps-stat"><b>'+count('lecture')+'/8</b> lectures</span><span class="ps-stat"><b>'+count('companion')+'</b> companions</span><span class="ps-stat"><b>'+count('factoid')+'</b> factoids</span><span class="ps-stat"><b>'+count('anki')+'</b> Anki decks</span></div><span class="ps-note">Tap a progress pill to update it.</span>';
+ box.innerHTML='<div class="ps-left"><span class="ps-title">Week 15 Progress</span><span class="ps-stat"><b>'+count('lecture')+'/7</b> lectures</span><span class="ps-stat"><b>'+count('companion')+'</b> companions</span><span class="ps-stat"><b>'+count('factoid')+'</b> factoids</span><span class="ps-stat"><b>'+count('anki')+'</b> Anki decks</span></div><span class="ps-note">Tap a progress pill to update it.</span>';
 }
 async function loadSupabase(){if(window.supabase)return;await new Promise(resolve=>{const existing=[...document.scripts].find(s=>s.src&&s.src.includes('@supabase/supabase-js'));if(existing){existing.addEventListener('load',resolve,{once:true});setTimeout(resolve,800);return}const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=resolve;s.onerror=resolve;document.head.appendChild(s)})}
 async function init(){
