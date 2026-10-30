@@ -23,6 +23,9 @@
     [data-name="MSK-Skin Week 15"].active-card .card-top{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;width:100%!important}
     [data-name="MSK-Skin Week 15"].active-card .card-top .week-label{margin-left:auto!important;order:99!important;position:relative!important;top:auto!important;right:auto!important;flex-shrink:0!important}
     [data-name="MSK-Skin Week 15"].active-card .locked-badge{display:none!important}
+    [data-name="MSK-Skin Week 16"].active-card .card-top{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;width:100%!important}
+    [data-name="MSK-Skin Week 16"].active-card .card-top .week-label{margin-left:auto!important;order:99!important;position:relative!important;top:auto!important;right:auto!important;flex-shrink:0!important}
+    [data-name="MSK-Skin Week 16"].active-card .locked-badge{display:none!important}
     #mskFeedbackPanel{margin-top:28px;background:linear-gradient(180deg,#fbfdfb,#f6faf7);border:1px solid #ceddd3;border-radius:22px;box-shadow:0 14px 34px rgba(24,59,42,.08);padding:20px}
     #mskFeedbackPanel .feedback-grid{display:grid;grid-template-columns:1fr;gap:14px}
     #mskFeedbackPanel .feedback-card{border:1px solid #ceddd3;background:#fbfdfb;border-radius:16px;padding:18px}
@@ -53,6 +56,7 @@
     const routeMap={
       'MSK-Skin Week 13':'weeks/week13/index.html',
       'MSK-Skin Week 15':'weeks/week15/index.html',
+      'MSK-Skin Week 16':'weeks/week16/index.html',
       'Gross Anatomy Lab':'weeks/gross-anatomy/index.html',
       'MSK-Skin Drug Hub':'weeks/msk-drug-hub/index.html',
       'MSK-Skin Pathology Hub':'weeks/msk-pathology-hub/index.html',
@@ -250,6 +254,44 @@
           const desc=(w13ref?.querySelector('.active-desc')?.cloneNode(true))||document.createElement('p');
           desc.className='active-desc';
           desc.textContent='Bone and cartilage, upper-limb anatomy, health systems science, and clinical review resources.';
+          heading.insertAdjacentElement('afterend',desc);
+          const footer=(w13ref?.querySelector('.active-footer')?.cloneNode(true))||document.createElement('div');
+          footer.className='active-footer';
+          if(!w13ref?.querySelector('.active-footer'))footer.innerHTML='<div class="active-tags"><span class="active-tag">Companions</span><span class="active-tag">Factoids</span><span class="active-tag">Review</span></div><div class="active-arrow">→</div>';
+          desc.insertAdjacentElement('afterend',footer);
+        }
+      }
+
+      // Unlock and route Week 16 using the same card layout as Week 15.
+      let w16=document.querySelector('[data-name="MSK-Skin Week 16"]');
+      if(!w16 && w15){
+        w16=w15.cloneNode(true);
+        w16.setAttribute('data-name','MSK-Skin Week 16');
+        w15.insertAdjacentElement('afterend',w16);
+      }
+      if(w16){
+        w16.classList.remove('placeholder','locked-card');
+        w16.classList.add('active-card');
+        w16.setAttribute('href','weeks/week16/index.html');
+        w16.setAttribute('aria-label','Open Week 16');
+        w16.removeAttribute('onclick');
+        w16.onclick=null;
+        w16.querySelectorAll('.locked-badge').forEach(el=>el.remove());
+        const top=w16.querySelector('.card-top');
+        if(top){
+          top.querySelectorAll('.week-label').forEach(el=>el.remove());
+          const label=document.createElement('span');
+          label.className='week-label';
+          label.textContent='Week 16';
+          top.appendChild(label);
+        }
+        const heading=w16.querySelector('h3');
+        if(heading){
+          heading.textContent='Week 16 · Musculoskeletal–Skin';
+          w16.querySelectorAll('.active-desc,.active-footer').forEach(el=>el.remove());
+          const desc=(w13ref?.querySelector('.active-desc')?.cloneNode(true))||document.createElement('p');
+          desc.className='active-desc';
+          desc.textContent='November 2–6 · Lectures, factoids, Anki, practice quizzes, and review resources.';
           heading.insertAdjacentElement('afterend',desc);
           const footer=(w13ref?.querySelector('.active-footer')?.cloneNode(true))||document.createElement('div');
           footer.className='active-footer';
