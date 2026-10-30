@@ -126,7 +126,12 @@ footer{padding:0 22px 34px;color:#74847a;font-size:10px}
       <div class="release-list" id="releaseList"></div>
     </section>
 
-    <section class="section" id="studentAccess"><div class="section-head"><div><div class="kicker" style="color:var(--mid);opacity:1">Account Management</div><h2>Student access</h2></div><p>Temporarily restrict or restore account access. Admin accounts are protected.</p></div><input class="student-search" type="search" id="accessSearch" placeholder="Search students by username" aria-label="Search students"><p class="access-status" id="accessMessage" role="status">Loading accounts…</p><div class="student-access" id="accessList"></div></section>
+    <section class="section" id="adminManagement" hidden>
+ <div class="section-head"><div><div class="kicker" style="color:var(--mid);opacity:1">Owner Only</div><h2>Manage administrators</h2></div><p>Grant or revoke administrator privileges without editing database code.</p></div>
+ <input class="student-search" id="adminSearch" type="search" placeholder="Find a MegaHub username" aria-label="Search accounts for admin access">
+ <p class="access-status" id="adminMessage" role="status">Loading accounts…</p><div class="student-access" id="adminList"></div>
+</section>
+<section class="section" id="studentAccess"><div class="section-head"><div><div class="kicker" style="color:var(--mid);opacity:1">Account Management</div><h2>Student access</h2></div><p>Temporarily restrict or restore account access. Admin accounts are protected.</p></div><input class="student-search" type="search" id="accessSearch" placeholder="Search students by username" aria-label="Search students"><p class="access-status" id="accessMessage" role="status">Loading accounts…</p><div class="student-access" id="accessList"></div></section>
     <section class="section">
       <div class="section-head">
         <div><div class="kicker" style="color:var(--mid);opacity:1">System Check</div><h2>Current admin architecture</h2></div>
@@ -265,6 +270,47 @@ async function loadReleases(){
   await render();
 }
 
+let adminCandidates=[];
+async function loadAdminCandidates(){
+ const section=document.getElementById('adminManagement');
+ const {data:owner,error:ownerError}=await sb.rpc('is_site_owner');
+ if(ownerError||owner!==true){section.hidden=true;return}
+ section.hidden=false;
+ const {data,error}=await sb.rpc('owner_list_admin_candidates');
+ if(error){document.getElementById('adminMessage').textContent='Could not load accounts';console.error(error);return}
+ adminCandidates=data||[];renderAdminCandidates();
+}
+function renderAdminCandidates(){
+ const root=document.getElementById('adminList'),term=document.getElementById('adminSearch').value.trim().toLowerCase();
+ const matching=adminCandidates.filter(x=>(x.display_name||'').toLowerCase().includes(term));
+ const status=document.getElementById('adminMessage');
+ status.textContent=adminCandidates.filter(x=>x.is_admin).length+' administrator(s) · '+adminCandidates.length+' accounts';
+ root.replaceChildren();
+ matching.forEach(user=>{
+ const row=document.createElement('div');row.className='student-row';
+ const info=document.createElement('div'),label=document.createElement('strong'),note=document.createElement('small');
+ label.textContent=user.display_name||'Unnamed account';note.textContent=user.is_owner?'Site owner':user.is_admin?'Administrator':'Standard student';
+ info.append(label,note);
+ const tools=document.createElement('div');tools.className='student-tools';
+ const badge=document.createElement('span');badge.className='badge';badge.textContent=user.is_owner?'Owner':user.is_admin?'Admin':'Student';
+ tools.append(badge);
+ if(!user.is_owner){
+ const btn=document.createElement('button');btn.type='button';btn.className='btn '+(user.is_admin?'danger':'primary');
+ btn.textContent=user.is_admin?'Remove admin':'Grant admin';
+ btn.addEventListener('click',async()=>{
+ const next=!user.is_admin;
+ if(!confirm((next?'Grant site administrator access to ':'Remove administrator access from ')+(user.display_name||'this account')+'?'))return;
+ btn.disabled=true;const {error}=await sb.rpc('owner_set_admin',{target_user:user.user_id,make_admin:next});
+ if(error){toast(error.message||'Could not update permissions');btn.disabled=false;return}
+ toast(next?'Administrator access granted':'Administrator access removed');
+ await loadAdminCandidates();await loadStudentAccess();
+ });tools.append(btn);
+ }
+ row.append(info,tools);root.append(row);
+ });
+}
+document.getElementById('adminSearch').addEventListener('input',renderAdminCandidates);
+
 let students=[];
 async function loadStudentAccess(){
  const msg=document.getElementById('accessMessage');
@@ -315,6 +361,7 @@ async function verify(){
     locked.hidden=true;shell.hidden=false;
     await loadReleases();
     await loadStudentAccess();
+    await loadAdminCandidates();
   }catch(e){console.error(e);deny('Administrator verification failed.');}
 }
 sb.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT')deny('Sign in from MegaHub Home with the administrator account, then return here.');if(event==='SIGNED_IN')setTimeout(verify,0)});
