@@ -270,6 +270,7 @@
         w15.insertAdjacentElement('afterend',w16);
       }
       if(w16){
+        w16.style.pointerEvents='auto';
         w16.classList.remove('placeholder','locked-card');
         w16.classList.add('active-card');
         w16.setAttribute('href','weeks/week16/index.html');
@@ -339,12 +340,15 @@
       }
       const el=e.target.closest&&e.target.closest('[data-name]');
       if(!el)return;
+      if(el.getAttribute('data-name')==='MSK-Skin Week 16'){
+        e.preventDefault();e.stopImmediatePropagation();window.location.assign('weeks/week16/index.html');return;
+      }
       const href=routeMap[el.getAttribute('data-name')];
       if(!href)return;
       e.preventDefault();e.stopImmediatePropagation();location.href=href;
     },true);
 
-    activate();setTimeout(activate,100);setTimeout(activate,500);
+    activate();setTimeout(activate,100);setTimeout(activate,500);setTimeout(activate,1500);
     verifyWeek14();
     window.addEventListener('focus',verifyWeek14);
   })();<\/script>`;
