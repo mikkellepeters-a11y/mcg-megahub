@@ -21,4 +21,102 @@ $('questions').addEventListener('change',e=>{if(!e.target.matches('input[type=ra
 $('questions').addEventListener('click',e=>{const btn=e.target.closest('button');if(btn){const id=btn.dataset.id,s=state[id];if(!s)return;if(btn.classList.contains('submit')&&!s.submitted&&s.choice&&!complete){s.submitted=true;render()}else if(btn.classList.contains('flag')){s.flagged=!s.flagged;render()}else if(btn.classList.contains('confidence-btn')&&!complete){s.confidence=btn.dataset.confidence;render()}return}const label=e.target.closest('.option');if(!label||tool==='off')return;const card=label.closest('.question'),s=state[card.id];if(!s||s.submitted||complete)return;e.preventDefault();const letter=label.querySelector('input').value;const property=tool==='highlight'?'highlighted':'struck';s[property]=s[property].includes(letter)?s[property].filter(x=>x!==letter):[...s[property],letter];render()});
 function chooseTool(next){tool=next;for(let [id,name] of [['highlightMode','highlight'],['strikeMode','strike'],['markOff','off']])$(id).setAttribute('aria-pressed',String(next===name))}
 $('highlightMode').onclick=()=>chooseTool('highlight');$('strikeMode').onclick=()=>chooseTool('strike');$('markOff').onclick=()=>chooseTool('off');$('new').onclick=requestReset;for(const id of ['mode','level','lecture'])$(id).addEventListener('change',requestReset);$('yesReset').onclick=()=>{$('confirm').classList.add('hide');begin()};$('noReset').onclick=()=>{$('confirm').classList.add('hide');for(const k of ['mode','level','lecture'])$(k).value=previousControls[k]};$('finish').onclick=finish;$('closeCompletion').onclick=()=>{$('completion').classList.add('hide');$('result').scrollIntoView({behavior:'smooth'})};$('flagfilter').onclick=()=>{flagOnly=!flagOnly;missedOnly=false;$('flagfilter').textContent=flagOnly?'Show all questions':'Show flagged only';$('missedfilter').textContent='Show missed only';render()};$('missedfilter').onclick=()=>{missedOnly=!missedOnly;flagOnly=false;$('missedfilter').textContent=missedOnly?'Show all questions':'Show missed only';$('flagfilter').textContent='Show flagged only';render()};document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('completion').classList.contains('hide'))$('closeCompletion').click()});begin();
+</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* MegaHub Week 16 Monday — signed-in question and quiz attempt sync.
+   Matches the Week 15 data schema without changing the approved quiz content. */
+const MSK_SYNC_QUIZ_ID='msk-w16-monday';
+const MSK_SYNC_QUIZ_NAME='Week 16 Monday';
+const MSK_SYNC_URL='https://ofqfdnxpftifnvxnvppe.supabase.co';
+const MSK_SYNC_KEY='sb_publishable_06zYj2REZQMC8nXfhm7weQ_Nrotri7G';
+const mskQueueKey='megahub-msk-pending-v2';
+const mskId=()=>window.crypto?.randomUUID?.()||('msk-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+let mskAttemptToken=mskId(),mskClient=null,mskSending=false,mskNeedsFlush=false;
+const mskStatus=document.createElement('div');
+mskStatus.setAttribute('role','status');
+mskStatus.setAttribute('aria-live','polite');
+mskStatus.style.cssText='position:fixed;right:14px;bottom:14px;z-index:90;max-width:320px;font:12px/1.45 system-ui,sans-serif;padding:9px 12px;border-radius:10px;background:#eaf4ec;color:#174c3f;border:1px solid #bbd7c6;box-shadow:0 5px 20px #102f2824;display:none';
+document.body.appendChild(mskStatus);
+function mskMessage(msg,bad=false){mskStatus.textContent=msg;mskStatus.style.display='block';mskStatus.style.background=bad?'#fff5e5':'#eaf4ec';mskStatus.style.color=bad?'#774714':'#174c3f'}
+function mskReadQueue(){try{const a=JSON.parse(localStorage.getItem(mskQueueKey)||'[]');return Array.isArray(a)?a:[]}catch(e){console.warn('MSK queue:',e);return []}}
+function mskWriteQueue(a){try{localStorage.setItem(mskQueueKey,JSON.stringify(a));return true}catch(e){console.warn('MSK storage:',e);mskMessage('Browser storage blocked: keep this tab open until synced.',true);return false}}
+function mskClientForUser(){if(!window.supabase)throw Error('Supabase library not loaded');return mskClient||(mskClient=window.supabase.createClient(MSK_SYNC_URL,MSK_SYNC_KEY))}
+async function mskEnqueue(table,row){
+  try{
+    const client=mskClientForUser();
+    const {data:{user},error}=await client.auth.getUser();
+    if(error||!user){mskMessage('Sign in to MegaHub to sync quiz progress.',true);return}
+    const key=user.id+'|'+table+'|'+row.module_key+'|'+row.quiz_id+'|'+row.attempt_token+'|'+(row.question_id||'completion');
+    const entries=mskReadQueue();
+    if(!entries.some(x=>x.key===key)){
+      entries.push({key,table,row,user_id:user.id});
+      if(!mskWriteQueue(entries))return;
+    }
+    void mskFlush();
+  }catch(e){console.warn('MSK enqueue:',e);mskMessage('Sync unavailable. Check your connection and sign-in.',true)}
+}
+const mskOriginalBegin=begin;
+begin=function(){mskOriginalBegin();mskAttemptToken=mskId();mskStatus.style.display='none';void mskFlush()};
+function mskQuestionRow(q,selected,confidence){
+  return {
+    module_key:'msk',quiz_id:MSK_SYNC_QUIZ_ID,question_id:q.id,
+    attempt_token:mskAttemptToken,week:'16',lecture:'Lecture '+q.lecture,
+    topic:q.lecture===1?'Posterior Forearm & Dorsum of Hand':'Non-Inflammatory Arthritis',
+    difficulty:q.difficulty==='Challenge'?'Step 1':q.difficulty,
+    selected_answer:selected,confidence:confidence||null,
+    correct_answer:q.answer,is_correct:selected===q.answer,
+    metadata:{source:'week16_daily',quiz_name:MSK_SYNC_QUIZ_NAME,category:'general',
+      difficulty_label:q.difficulty,filter_difficulty:level,filter_lecture:lecture}
+  };
+}
+function mskQuizRow(){
+  const info=calculate();
+  return {
+    module_key:'msk',quiz_id:MSK_SYNC_QUIZ_ID,quiz_name:MSK_SYNC_QUIZ_NAME,
+    attempt_token:mskAttemptToken,score:info.correct.length,
+    total_questions:info.submitted,percentage:info.submitted?100*info.correct.length/info.submitted:0,
+    mode,metadata:{week:'16',selected_question_count:info.total,source:'week16_daily',
+      difficulty_filter:level,lecture_filter:lecture,bank_percentage:info.bankPercentage,
+      passing_threshold:70,passed:info.bankPercentage>=70}
+  };
+}
+async function mskFlush(){
+  if(mskSending){mskNeedsFlush=true;return}
+  if(!mskReadQueue().length)return;
+  mskSending=true;let failure=false;
+  try{
+    const client=mskClientForUser();
+    const {data:{user},error}=await client.auth.getUser();
+    if(error||!user){mskMessage('Sign in to MegaHub to sync pending MSK progress.',true);return}
+    for(const entry of mskReadQueue()){
+      if(entry.user_id!==user.id)continue;
+      const {error:e}=await client.from(entry.table).insert({...entry.row,user_id:user.id});
+      if(!e||e.code==='23505'){
+        if(!mskWriteQueue(mskReadQueue().filter(x=>x.key!==entry.key))){failure=true;break}
+      }else{
+        failure=true;console.warn('MSK Supabase sync:',e);
+        mskMessage('MSK sync pending. Reconnect or submit another answer to retry.',true);
+        break;
+      }
+    }
+    if(!failure&&!mskReadQueue().some(x=>x.user_id===user.id))mskMessage('Week 16 Monday progress synced to My Profile.');
+  }catch(e){failure=true;console.warn('MSK sync:',e);mskMessage('MSK sync pending; retry when online.',true)}
+  finally{mskSending=false;if(mskNeedsFlush){mskNeedsFlush=false;if(!failure)void mskFlush()}}
+}
+/* Read pre-submit selection and token in the capture phase; quiz click handler locks next. */
+document.getElementById('questions').addEventListener('click',e=>{
+  const btn=e.target.closest('button.submit');
+  if(!btn||btn.disabled||complete)return;
+  const q=BANK.find(x=>x.id===btn.closest('.question')?.id);
+  if(!q||!state[q.id]?.choice||state[q.id].submitted)return;
+  void mskEnqueue('question_attempts',mskQuestionRow(q,state[q.id].choice,state[q.id].confidence));
+},true);
+document.getElementById('finish').addEventListener('click',()=>{
+  if(complete||!attempt.some(q=>state[q.id]?.submitted))return;
+  void mskEnqueue('quiz_attempts',mskQuizRow());
+},true);
+window.addEventListener('online',()=>void mskFlush());
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void mskFlush()});
+window.addEventListener('storage',e=>{if(e.key===mskQueueKey)void mskFlush()});
+void mskFlush();
 </script></body></html>
