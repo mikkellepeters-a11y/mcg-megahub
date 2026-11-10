@@ -57,6 +57,7 @@
       'MSK-Skin Week 13':'weeks/week13/index.html',
       'MSK-Skin Week 15':'weeks/week15/index.html',
       'MSK-Skin Week 16':'weeks/week16/index.html',
+      'MSK-Skin Week 17':'weeks/week17/index.html',
       'Gross Anatomy Lab':'weeks/gross-anatomy/index.html',
       'MSK-Skin Drug Hub':'weeks/msk-drug-hub/index.html',
       'MSK-Skin Pathology Hub':'weeks/msk-pathology-hub/index.html',
@@ -297,6 +298,45 @@
           const footer=(w13ref?.querySelector('.active-footer')?.cloneNode(true))||document.createElement('div');
           footer.className='active-footer';
           if(!w13ref?.querySelector('.active-footer'))footer.innerHTML='<div class="active-tags"><span class="active-tag">Companions</span><span class="active-tag">Factoids</span><span class="active-tag">Review</span></div><div class="active-arrow">→</div>';
+          desc.insertAdjacentElement('afterend',footer);
+        }
+      }
+
+      // Add the Week 17 card using Week 16's established active-card style.
+      let w17=document.querySelector('[data-name="MSK-Skin Week 17"]');
+      if(!w17 && w16){
+        w17=w16.cloneNode(true);
+        w17.setAttribute('data-name','MSK-Skin Week 17');
+        w16.insertAdjacentElement('afterend',w17);
+      }
+      if(w17){
+        w17.style.pointerEvents='auto';
+        w17.classList.remove('placeholder','locked-card');
+        w17.classList.add('active-card');
+        w17.setAttribute('href','weeks/week17/index.html');
+        w17.setAttribute('aria-label','Open Week 17');
+        w17.removeAttribute('onclick');
+        w17.onclick=null;
+        w17.querySelectorAll('.locked-badge').forEach(el=>el.remove());
+        const top=w17.querySelector('.card-top');
+        if(top){
+          top.querySelectorAll('.week-label').forEach(el=>el.remove());
+          const label=document.createElement('span');
+          label.className='week-label';
+          label.textContent='Week 17';
+          top.appendChild(label);
+        }
+        const heading=w17.querySelector('h3');
+        if(heading){
+          heading.textContent='Week 17 · Learning Hub';
+          w17.querySelectorAll('.active-desc,.active-footer').forEach(el=>el.remove());
+          const desc=document.createElement('p');
+          desc.className='active-desc';
+          desc.textContent='November 9–13 · Lecture resources, quizzes, and review coming soon.';
+          heading.insertAdjacentElement('afterend',desc);
+          const footer=(w16?.querySelector('.active-footer')?.cloneNode(true))||document.createElement('div');
+          footer.className='active-footer';
+          if(!w16?.querySelector('.active-footer'))footer.innerHTML='<div class="active-tags"><span class="active-tag">Companions</span><span class="active-tag">Factoids</span><span class="active-tag">Review</span></div><div class="active-arrow">→</div>';
           desc.insertAdjacentElement('afterend',footer);
         }
       }
