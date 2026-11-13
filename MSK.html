@@ -58,6 +58,7 @@
       'MSK-Skin Week 15':'weeks/week15/index.html',
       'MSK-Skin Week 16':'weeks/week16/index.html',
       'MSK-Skin Week 17':'weeks/week17/index.html',
+      'MSK-Skin Week 18':'weeks/week18/index.html',
       'Gross Anatomy Lab':'weeks/gross-anatomy/index.html',
       'MSK-Skin Drug Hub':'weeks/msk-drug-hub/index.html',
       'MSK-Skin Pathology Hub':'weeks/msk-pathology-hub/index.html',
@@ -339,6 +340,21 @@
           if(!w16?.querySelector('.active-footer'))footer.innerHTML='<div class="active-tags"><span class="active-tag">Companions</span><span class="active-tag">Factoids</span><span class="active-tag">Review</span></div><div class="active-arrow">→</div>';
           desc.insertAdjacentElement('afterend',footer);
         }
+      }
+
+      // Extend the active-week card design to Week 18.
+      let w18=document.querySelector('[data-name="MSK-Skin Week 18"]');
+      if(!w18 && w17){w18=w17.cloneNode(true);w18.setAttribute('data-name','MSK-Skin Week 18');w17.insertAdjacentElement('afterend',w18);}
+      if(w18){
+        w18.style.pointerEvents='auto';
+        w18.classList.remove('placeholder','locked-card');w18.classList.add('active-card');
+        w18.setAttribute('href','weeks/week18/index.html');w18.setAttribute('aria-label','Open Week 18');
+        w18.removeAttribute('onclick');w18.onclick=null;
+        w18.querySelectorAll('.locked-badge').forEach(el=>el.remove());
+        const top=w18.querySelector('.card-top');
+        if(top){top.querySelectorAll('.week-label').forEach(el=>el.remove());const label=document.createElement('span');label.className='week-label';label.textContent='Week 18';top.appendChild(label);}
+        const heading=w18.querySelector('h3');
+        if(heading){heading.textContent='Week 18 · Lecture Hub & Study Resources';w18.querySelectorAll('.active-desc,.active-footer').forEach(el=>el.remove());const desc=document.createElement('p');desc.className='active-desc';desc.textContent='November 16–20 · Lecture resources, quizzes, and review coming soon.';heading.insertAdjacentElement('afterend',desc);const footer=w17?.querySelector('.active-footer')?.cloneNode(true);if(footer)desc.insertAdjacentElement('afterend',footer);}
       }
 
       const cbl=document.querySelector('[data-name="MSK-Skin CBL"]');
