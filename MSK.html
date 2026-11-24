@@ -59,6 +59,7 @@
       'MSK-Skin Week 16':'weeks/week16/index.html',
       'MSK-Skin Week 17':'weeks/week17/index.html',
       'MSK-Skin Week 18':'weeks/week18/index.html',
+      'MSK-Skin Week 19':'weeks/week19/index.html',
       'Gross Anatomy Lab':'weeks/gross-anatomy/index.html',
       'MSK-Skin Drug Hub':'weeks/msk-drug-hub/index.html',
       'MSK-Skin Pathology Hub':'weeks/msk-pathology-hub/index.html',
@@ -355,6 +356,30 @@
         if(top){top.querySelectorAll('.week-label').forEach(el=>el.remove());const label=document.createElement('span');label.className='week-label';label.textContent='Week 18';top.appendChild(label);}
         const heading=w18.querySelector('h3');
         if(heading){heading.textContent='Lower Extremity Anatomy, Bone & Soft Tissue Tumors';w18.querySelectorAll('.active-desc,.active-footer').forEach(el=>el.remove());const desc=document.createElement('p');desc.className='active-desc';desc.textContent='November 16–20 · Lecture resources, quizzes, and review coming soon.';heading.insertAdjacentElement('afterend',desc);const footer=w17?.querySelector('.active-footer')?.cloneNode(true);if(footer)desc.insertAdjacentElement('afterend',footer);}
+      }
+
+
+      // Thanksgiving break: Week 19 is a friendly holiday message, not a study week.
+      let w19=document.querySelector('[data-name="MSK-Skin Week 19"]');
+      if(!w19 && w18){w19=w18.cloneNode(true);w19.setAttribute('data-name','MSK-Skin Week 19');w18.insertAdjacentElement('afterend',w19);}
+      if(w19){
+        w19.style.pointerEvents='auto';
+        w19.classList.remove('placeholder','locked-card');w19.classList.add('active-card');
+        w19.setAttribute('href','weeks/week19/index.html');w19.setAttribute('aria-label','Open Week 19 Thanksgiving message');
+        w19.removeAttribute('onclick');w19.onclick=null;
+        w19.querySelectorAll('.locked-badge').forEach(el=>el.remove());
+        const top=w19.querySelector('.card-top');
+        if(top){top.querySelectorAll('.week-label').forEach(el=>el.remove());const label=document.createElement('span');label.className='week-label';label.textContent='Week 19';top.appendChild(label);}
+        const heading=w19.querySelector('h3');
+        if(heading){
+          heading.textContent='Happy Thanksgiving! 🍂';
+          w19.querySelectorAll('.active-desc,.active-footer').forEach(el=>el.remove());
+          const desc=document.createElement('p');desc.className='active-desc';desc.textContent='November 23–27 · A little holiday message from me to you. No studying required!';
+          heading.insertAdjacentElement('afterend',desc);
+          const footer=document.createElement('div');footer.className='active-footer';
+          footer.innerHTML='<div class="active-tags"><span class="active-tag">Thanksgiving Break</span><span class="active-tag">A Note From Me</span></div><div class="active-arrow">→</div>';
+          desc.insertAdjacentElement('afterend',footer);
+        }
       }
 
       const cbl=document.querySelector('[data-name="MSK-Skin CBL"]');
