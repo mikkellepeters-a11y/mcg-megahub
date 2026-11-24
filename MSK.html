@@ -361,7 +361,7 @@
 
       // Thanksgiving break: Week 19 is a friendly holiday message, not a study week.
       let w19=document.querySelector('[data-name="MSK-Skin Week 19"]');
-      if(!w19 && w18){w19=w18.cloneNode(true);w19.setAttribute('data-name','MSK-Skin Week 19');w18.insertAdjacentElement('afterend',w19);}
+      if(!w19 && w18){w19=w18.cloneNode(true);w19.dataset.week19Fallback='1';w19.setAttribute('data-name','MSK-Skin Week 19');w18.insertAdjacentElement('afterend',w19);}
       if(w19){
         w19.style.pointerEvents='auto';
         w19.classList.remove('placeholder','locked-card');w19.classList.add('active-card');
@@ -372,7 +372,8 @@
         if(top){top.querySelectorAll('.week-label').forEach(el=>el.remove());const label=document.createElement('span');label.className='week-label';label.textContent='Week 19';top.appendChild(label);}
         const heading=w19.querySelector('h3');
         if(heading){
-          heading.textContent='Happy Thanksgiving! 🍂';
+          if(!heading.dataset.week19Title){heading.dataset.week19Title=w19.dataset.week19Fallback==='1'?'Thanksgiving Break':heading.textContent;}
+          heading.textContent=heading.dataset.week19Title;
           w19.querySelectorAll('.active-desc,.active-footer').forEach(el=>el.remove());
           const desc=document.createElement('p');desc.className='active-desc';desc.textContent='November 23–27 · A little holiday message from me to you. No studying required!';
           heading.insertAdjacentElement('afterend',desc);
